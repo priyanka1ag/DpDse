@@ -1,0 +1,457 @@
+import numpy as np
+from enum import Enum
+from pyvolt import measurement
+from pyvolt import network as net
+from pyvolt import nv_powerflow
+import scipy as spy
+
+
+# TODO: Only centralized implementation available so far! Feeder selection should be implemented here. Because it affects the state space formation
+class DpDse_Centralized(Enum):
+    YES = 1
+    NO = 2
+
+
+class DpDse_Model(Enum):
+    STANDARD = 1
+    AUGMENTED = 2
+    INPUT_LOAD_POWER = 3
+    LOAD_CURRENT_AUGMENTED = 4
+
+
+class Line_Type(Enum):
+    RL = 1
+    PI = 2
+
+
+def phasor_complex(mag, ph):
+    # mag and ph are list of magnitudes and phase angles
+    # returns an array of complex values
+    if len(mag) == 0 or len(ph) == 0:
+        raise Exception("Empty list. Nothing to convert")
+    elif len(mag) != len(ph):
+        raise Exception("Magnitude and phase list lengths are not same. There is either a missing magnitude or a "
+                        "phase angle")
+    else:
+        m_arr = np.array(mag)
+        ph_arr = np.array(ph)
+        return complex(m_arr * np.cos(np.radians(ph_arr)), m_arr * np.sin(np.radians(ph_arr)))
+
+
+class DpDse:
+    def __init__(self, network, measurement_set, time_step, model_type=DpDse_Model.STANDARD,
+                 line_type=Line_Type.RL):
+        if not isinstance(network, net.System):
+            raise Exception("network must be an object of class Network of PyVolt")
+
+        if not isinstance(measurement_set, measurement.MeasurementSet):
+            raise Exception("measurement_set must be an object of class MeasurementSet of PyVolt")
+
+        if not isinstance(model_type, DpDse_Model):
+            raise Exception("model_type must be an object of class DpDse_Model")
+
+        if not isinstance(line_type, Line_Type):
+            raise Exception("line_type must be an object of class Line_Type")
+
+        self.model_type = model_type
+        self.network = network
+        self.measurement_set = measurement_set
+        self.time_step = time_step
+        self.line_type = line_type
+        self.Adt = np.empty((0, 0))  # descretized A matrix
+        self.Bdt = np.empty((0, 0))  # descretized B matrix
+        self.Act = np.empty((0, 0))  # continuous A matrix
+        self.Bct = np.empty((0, 0))  # continuous B matrix
+        self.num_sv = 0  # number of state variables
+        self.num_u = 0  # number of control inputs
+        self.num_z = 0  # number of measurements (not including control inputs)
+        self.num_g = 0  # number of generator nodes
+        self.num_l = 0  # number of load nodes
+        self.num_b = 0  # number of branches
+        self.x_init = np.array([])  # initial state variables
+        self.P_init = np.array([])  # initial prediction covariance
+        self.u = np.array(
+            [])  # list of control inputs in the form [vmag, vph, P, Q] or [vmag, vp, Iinj_mag, Iinj_ph] (TODO: second one needs new measurement type current injection in PyVolt)
+        self.x_est = np.array([])  # list of values of estimated states
+        self.x_pred = np.array([])  # list of values of predicted states
+        self.vg = np.array([])  # array of generator voltage phasors measurement object as tuple (v_mag, v_ph).
+        self.sl = np.array([])  # array of load power injection measurement object as tuple (p, q)
+        self.il = np.array([])  # array of load current injection measurement object as tuple (il_mag, il_ph)
+        self.z = np.array([])  # array of measurement objects which will be used for correction step
+
+    def initialize_dse(self):
+        fo = 50  # TODO: where can we get network nominal frequency information
+        w_o = 2 * np.pi * fo
+
+        # set type of line and if load resistance is to be considered # TODO: How and where to specify load resistance?
+        load_resistance = False
+
+        # TODO: How to set P_rLoad and R_L??
+        # Set base quantities
+        Vbase = 12.66  # line-line voltage #TODO: How to set vbase?
+        base_apparent_power = 1  # MVA
+        Ibase = base_apparent_power / (np.sqrt(3) * Vbase)
+
+        get_ES_node_index = [gen_node.index for gen_node in self.network.get_ES_nodes()]
+        get_EC_node_index = [load_node.index for load_node in self.network.get_EC_nodes()]
+
+        num_gen = len(get_ES_node_index)
+        num_load = len(get_EC_node_index)
+        num_nodes = num_gen + num_load
+        num_branch = self.network.get_branch_num()
+
+        self.num_b = num_branch
+        self.num_g = num_gen
+        self.num_l = num_load
+
+        P_rLoad = np.array(
+            [[1], [.9], [0.6], [0.6], [0.6], [1.5]])  # this can be built from the power flow results or CIM SV file
+
+        R_L = np.divide(Vbase * Vbase * np.ones((num_load, 1)), P_rLoad).flatten()
+        R_L = np.diag(R_L)
+
+        # Form bus-branch incidence matrix
+        PS_A = self.network.get_bus_branch_incidence_matrix()
+        # Separating A_G and A_L
+        PS_A_G = PS_A[get_ES_node_index, :]
+        PS_A_L = PS_A[get_EC_node_index, :]
+
+        # Extracting R, L, C
+        branch_r = [1e-15 if x == 0.0 else x for x in self.network.get_branch_R()]
+        cables_R = np.diag(branch_r)
+        branch_x = [1e-15 if x == 0.0 else x for x in
+                    self.network.get_branch_X()]
+        cables_L = np.diag(branch_x) / w_o
+        cables_C = np.diag(np.dot(abs(PS_A_L), self.network.get_branch_C()) * 0.5) / w_o
+
+        # create A, B matrices
+        # creating A matrix
+        A11 = np.dot(-np.linalg.inv(cables_L), cables_R)
+        A12 = w_o * np.eye(num_branch)
+        A13 = np.dot(np.linalg.inv(cables_L), PS_A_L.transpose())
+        A14 = np.zeros((num_branch, num_load))
+
+        A21 = -w_o * np.eye(num_branch)
+        A22 = np.dot(-np.linalg.inv(cables_L), cables_R)
+        A23 = np.zeros((num_branch, num_load))
+        A24 = np.dot(np.linalg.inv(cables_L), PS_A_L.transpose())
+
+        if self.line_type == Line_Type.PI:
+            A31 = np.dot(-np.linalg.inv(cables_C), PS_A_L)
+        else:
+            A31 = np.dot(-np.eye(num_load), PS_A_L)
+        A32 = np.zeros((num_load, num_branch))
+        if self.line_type == Line_Type.PI and load_resistance is True:
+            A33 = -np.linalg.inv(np.dot(cables_C, R_L))
+        elif load_resistance is False:
+            A33 = np.zeros((num_load, num_load))  # when load resistance is not to be considered
+        elif self.line_type == Line_Type.RL and load_resistance is True:
+            A33 = -np.linalg.inv(np.dot(np.eye(num_load), R_L))
+        if self.line_type == Line_Type.PI:
+            A34 = w_o * np.eye(num_load)
+        else:
+            A34 = np.zeros((num_load, num_load))  # when shunt capacitance is not to be considered
+
+        A41 = np.zeros((num_load, num_branch))
+        if self.line_type == Line_Type.PI:
+            A42 = np.dot(-np.linalg.inv(cables_C), PS_A_L)
+        else:
+            A42 = np.dot(-np.eye(num_load), PS_A_L)
+        if self.line_type == Line_Type.PI:
+            A43 = -w_o * np.eye(num_load)
+        else:
+            A43 = np.zeros((num_load, num_load))  # when shunt capacitance is not to be considered
+        if self.line_type == Line_Type.PI and load_resistance is True:
+            A44 = -np.linalg.inv(np.dot(cables_C, R_L))
+        elif load_resistance is False:
+            A44 = np.zeros((num_load, num_load))  # when load resistance is not to be considered
+        elif self.line_type == Line_Type.RL and load_resistance is True:
+            A44 = -np.linalg.inv(np.dot(np.eye(num_load), R_L))
+
+        # Creating B matrix
+        B11 = np.dot(np.linalg.inv(cables_L), PS_A_G.transpose())
+        B12 = np.zeros((num_branch, num_gen))
+        B13 = np.zeros((num_branch, num_load))
+        B14 = np.zeros((num_branch, num_load))
+
+        B21 = np.zeros((num_branch, num_gen))
+        B22 = np.dot(np.linalg.inv(cables_L), PS_A_G.transpose())
+        B23 = np.zeros((num_branch, num_load))
+        B24 = np.zeros((num_branch, num_load))
+
+        B31 = np.zeros((num_load, num_gen))
+        B32 = np.zeros((num_load, num_gen))
+        if self.line_type == Line_Type.PI:
+            B33 = -np.linalg.inv(cables_C)
+        else:
+            B33 = -np.eye(num_load)
+        B34 = np.zeros((num_load, num_load))
+
+        B41 = np.zeros((num_load, num_gen))
+        B42 = np.zeros((num_load, num_gen))
+        B43 = np.zeros((num_load, num_load))
+        if self.line_type == Line_Type.PI:
+            B44 = -np.linalg.inv(cables_C)
+        else:
+            B44 = -np.eye(num_load)
+
+        SS_Bu = np.bmat([[B11, B12], [B21, B22], [B31, B32], [B41, B42]])
+        SS_Bd = np.bmat([[B13, B14], [B23, B24], [B33, B34], [B43, B44]])
+        SS_A = np.bmat([[A11, A12, A13, A14], [A21, A22, A23, A24], [A31, A32, A33, A34], [A41, A42, A43, A44]])
+        SS_B = np.bmat([[B11, B12, B13, B14], [B21, B22, B23, B24], [B31, B32, B33, B34], [B41, B42, B43, B44]])
+        SS_A_disc = spy.linalg.expm(SS_A * self.time_step)
+        SS_B_disc = np.dot(
+            np.dot(np.linalg.inv(SS_A), (spy.linalg.expm(np.dot(SS_A, self.time_step)) - np.eye(np.shape(SS_A)[0]))),
+            SS_B)
+
+        if self.model_type == DpDse_Model.STANDARD:
+            # create A and B matrix for standard case, i.e.,
+            # SV: branch currents and load voltages in rectangular form
+            # u : generator voltages and load current injections in rectangular form
+            # either load current measurements are available or power injection measurements are available
+            self.num_sv = 2 * num_branch + 2 * num_load
+            self.num_u = 2 * num_gen + 2 * num_load
+            self.Act = SS_A
+            self.Bct = SS_B
+            self.Adt = SS_A_disc
+            self.Bdt = SS_B_disc
+
+        elif self.model_type == DpDse_Model.AUGMENTED:
+            # create A and B matrix for Augmented case, i.e.,
+            # SV: branch currents and load voltages, generator voltages and load current injections in rectangular form
+            # u :  Nothing
+            # Augmented state-space
+            self.num_sv = 2 * num_branch + 2 * num_load + 2 * num_gen + 2 * num_load
+            self.num_u = 0
+            self.Adt = np.bmat([[SS_A_disc, SS_B_disc], [np.zeros(((2 * num_gen + 2 * num_load), self.num_sv)),
+                                                         np.eye(2 * num_gen + 2 * num_load)]])
+            # B matrix is not required here, as X_dot = Ax
+            self.Bdt = np.zeros((self.num_sv, 1))
+
+            self.Act = np.bmat([[SS_A, SS_B], [np.zeros(((2 * num_gen + 2 * num_load), self.num_sv)),
+                                               np.eye(2 * num_gen + 2 * num_load)]])
+            # B matrix is not required here, as X_dot = Ax
+            self.Bct = np.zeros((self.num_sv, 1))
+
+        elif self.model_type == DpDse_Model.INPUT_LOAD_POWER:
+            # create A and B matrix for Load power case, i.e.,
+            # SV: branch currents and load voltages and load current injections in rectangular form
+            # u : generator voltages and load current injections calculated from power injections and voltage estimates
+            self.num_sv = 2 * num_branch + 2 * num_load + 2 * num_load
+            self.num_u = 2 * num_gen + 2 * num_load
+            tl = 10  # TODO: How to set this generically
+            Tl = tl * np.eye(2 * num_load)
+            SS_A = np.bmat([[SS_A, SS_Bd], [np.zeros((2 * num_load, 2 * num_load + 2 * num_branch)),
+                                            -np.linalg.inv(Tl)]])
+            SS_B = np.bmat([[SS_Bu, np.zeros((2 * num_load + 2 * num_branch, 2 * num_load))],
+                            [np.zeros((2 * num_load, 2 * num_gen)), -np.linalg.inv(Tl)]])
+            SS_A_disc = spy.linalg.expm(SS_A * self.time_step)
+            SS_B_disc = np.dot(np.dot(np.linalg.inv(SS_A),
+                                      (spy.linalg.expm(np.dot(SS_A, self.time_step)) - np.eye(np.shape(SS_A)[0]))),
+                               SS_B)
+            self.Adt = SS_A_disc
+            self.Bdt = SS_B_disc
+            self.Act = SS_A
+            self.Bct = SS_B
+
+        # extract the control variables into self.vg and self.il or self.sl private variables
+        self.extract_control_observations()
+
+    def check_ss_consistency(self):
+        # TODO: This consistency check is only valid for STANDARD model type
+        if self.model_type == DpDse_Model.STANDARD:
+            # Execute power flow analysis
+            results_pf, num_iter = nv_powerflow.solve(self.network)
+            # Print node voltages
+            print("Powerflow converged in " + str(num_iter) + " iterations.\n")
+            pf_node_voltages = []
+            for node in results_pf.nodes:
+                pf_node_voltages.append(node.voltage)
+
+            pf_br_currents = []
+            for branch in results_pf.branches:
+                pf_br_currents.append(branch.current)
+
+            pf_node_currents = []
+            for node in results_pf.nodes:
+                pf_node_currents.append(node.current)
+
+            # initialization of state variables and control inputs
+            get_ES_node_index = [gen_node.index for gen_node in self.network.get_ES_nodes()]
+            get_EC_node_index = [load_node.index for load_node in self.network.get_EC_nodes()]
+            pf_vg = np.array(pf_node_voltages)[np.array(get_ES_node_index)]
+            pf_vl = np.array(pf_node_voltages)[np.array(get_EC_node_index)]
+            pf_il = np.array(pf_node_currents)[np.array(get_EC_node_index)]
+            pf_ibr = np.array(pf_br_currents)
+            # converting line-line voltage to phase voltage: the state-space is built for per phase calculation
+            x_init_pf_conv = np.concatenate(
+                (pf_ibr.real, pf_ibr.imag, pf_vl.real / np.sqrt(3), pf_vl.imag / np.sqrt(3)))
+            u_init_pf_conv = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), pf_il.real, pf_il.imag))
+            # negated load currents as current injections from loads are considered
+            u_init_pf_curr_inj = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), - pf_il.real,
+                                                 - pf_il.imag))
+
+            bu = np.dot(self.Bct, u_init_pf_conv)
+            # solve for x = inv(A)*Bu
+            bu_curr_inj = np.dot(self.Bct, u_init_pf_curr_inj)
+            x_init_from_ss = np.dot(np.linalg.inv(self.Act), -bu_curr_inj.T)
+
+            print("x_init direct pf: ", x_init_pf_conv)
+            print("x_init_state space: ", x_init_from_ss)
+
+            print("Ax: ", np.dot(self.Act, x_init_pf_conv))
+            print("Bu: ", bu)
+
+            print("Ax_state space: ", np.dot(self.Act, x_init_from_ss).T)
+            print("bu_curr_inj: ", bu_curr_inj)
+        else:
+            print("consistency check is implemented only for STANDARD type")
+
+    def extract_control_observations(self):
+        # from the entire measurement_set, extract and separate the measurements which form control variables
+        # (vg, il or sl) and rest of the measurements which form observations used for correct step
+
+        v_mag = []  # list to extract generator voltage magnitude measurement objects
+        v_ph = []  # list to extract generator voltage phase measurement objects
+        p = []  # list to extract load real power injection measurement objects
+        q = []  # list to extract load reactive power injection measurement objects
+        z = []  # list of rest of the measurement objects for use in correction step
+
+        gen_uuid = [gen_node.uuid for gen_node in self.network.get_ES_nodes()]
+        load_uuid = [load_node.uuid for load_node in self.network.get_EC_nodes()]
+
+        # first extract all measurements of a node of type voltage and power injections of generator nodes and load
+        # nodes respectively, the remaining goes into z list
+        for meas in self.measurement_set.measurements:
+            if meas.element_type == measurement.ElemType.Node:
+                if meas.meas_type == measurement.MeasType.Vpmu_mag and meas.element.uuid in gen_uuid:
+                    v_mag.append(meas)
+                if meas.meas_type == measurement.MeasType.Vpmu_phase and meas.element.uuid in gen_uuid:
+                    v_ph.append(meas)
+                if meas.meas_type == measurement.MeasType.Sinj_real and meas.element.uuid in load_uuid:
+                    p.append(meas)
+                if meas.meas_type == measurement.MeasType.Sinj_imag and meas.element.uuid in load_uuid:
+                    q.append(meas)
+                else:
+                    z.append(meas)
+        # Create a dictionary to map uuid to measurement objects
+        vmag_dict = {m.element.uuid: m for m in v_mag}
+        vph_dict = {m.element.uuid: m for m in v_ph}
+        p_dict = {m.element.uuid: m for m in p}
+        q_dict = {m.element.uuid: m for m in q}
+
+        # Rearrange gen voltages and according to the order of generator order (using uuid), same for load powers
+        # list of control variables - (voltage magnitude, voltage phase angles),
+        #                             (load real power and load imaginary power injections)
+        self.vg = [(vmag_dict[x], v_ph[x]) for x in gen_uuid]
+        self.sl = [(p_dict[x], q_dict[x]) for x in load_uuid]
+        self.z = np.array(z)
+
+        # TODO: control input as direct load current injection needs changes in PyVolt first - not yet implemented here as well
+        # TODO: check for power injections, the sign needs to be changed or not
+
+    def assemble_u(self):
+        # this function constructs u vector depending upon the kind of model in the required form
+        # if STANDARD: [vg_re, vg_im, il_re, il_im]
+        # if INPUT_LOAD_POWER: [vg_re, vg_im, il_calc_re, il_calc_im]
+        # if AUGMENTED: [0.....0]
+        #TODO: yet to check if this is working correctly!!
+        vg_mag = np.array([m[0].meas_value for m in self.vg])
+        vg_ph = np.array([m[1].meas_value for m in self.vg])
+        vg_cmplx = phasor_complex(vg_mag, vg_ph)
+        vg = np.concatenate((vg_cmplx.real, vg_cmplx.imag))
+        if self.model_type == DpDse_Model.STANDARD:
+            il_mag = np.array([m[0].meas_value for m in self.il])
+            il_ph = np.array([m[1].meas_value for m in self.il])
+            il_cmplx = phasor_complex(il_mag, il_ph)
+            il = np.concatenate((il_cmplx.real, il_cmplx.imag))
+            self.u = np.concatenate((vg, il))
+        elif self.model_type == DpDse_Model.INPUT_LOAD_POWER:
+            il_calc = self.power_to_current_injection()
+            self.u = np.concatenate((vg, il_calc))
+        elif self.model_type == DpDse_Model.AUGMENTED:
+            self.u = np.zeros((self.num_sv, 1))  # no control variables, it is only X_dot = Ax
+
+    def power_to_current_injection(self):
+        # compute current injections from power injection measurements and estimated voltages from previous step
+        #TODO: need to check if this function works!
+        v_est = self.extract_load_voltages_estimation()
+        v_est_re = v_est[:self.num_l]
+        v_est_im = v_est[self.num_l:]
+        p_inj = np.array([m[0].meas_value for m in self.sl])
+        q_inj = np.array([m[1].meas_value for m in self.sl])
+        v_sq = v_est_re * v_est_re + v_est_im * v_est_im
+        il_re = (v_est_re * p_inj + v_est_im * q_inj) / v_sq
+        il_im = (v_est_im * p_inj - v_est_re * q_inj) / v_sq
+        il = np.concatenate((il_re, il_im))
+        return il
+
+    def predict(self):
+        # TODO: yet to check if this works correctly!!
+        # assemble u vector depending upon the model type into required form
+        self.assemble_u()
+        # predict the states for next time-step
+        self.x_pred = self.Adt * self.x_est + self.Bdt * self.u.T
+
+    def extract_branch_currents_estimation(self):
+        return self.x_est[:2 * self.num_b]
+
+    def extract_branch_currents_prediction(self):
+        return self.x_pred[:2 * self.num_b]
+
+    def extract_load_voltages_estimation(self):
+        return self.x_est[2 * self.num_b: 2 * self.num_b + 2 * self.num_l]
+
+    def extract_load_voltages_prediction(self):
+        return self.x_pred[2 * self.num_b: 2 * self.num_b + 2 * self.num_l]
+
+    def get_num_sv(self):
+        return self.num_sv
+
+    def get_num_u(self):
+        return self.num_u
+
+    def get_num_g(self):
+        return self.num_g
+
+    def get_num_l(self):
+        return self.num_l
+
+    def get_num_b(self):
+        return self.num_b
+
+    def get_Act(self):
+        return self.Act
+
+    def get_Bct(self):
+        return self.Bct
+
+    def get_Adt(self):
+        return self.Adt
+
+    def get_Bdt(self):
+        return self.Bdt
+
+    def hx_Ipmu_b_re(self):
+        # measurement function for measurements of branch currents - real
+        return self.extract_branch_currents_prediction()[:self.num_b]
+
+    def hx_Ipmu_b_im(self):
+        # measurement function for measurements of branch currents - imag
+        return self.extract_branch_currents_prediction()[self.num_b: 2 * self.num_b]
+
+    def H_Ipmu_b_re(self):
+        # Jacobian for pmu measurements of branch currents
+        print('To be implemented')
+
+    def H_Ipmu_b_im(self):
+        # Jacobian for pmu measurements of branch currents
+        print('To be implemented')
+
+    def hx_Vpmu(self):
+        # meausrement function for pmu measurements of load voltages
+        print('To be implemented')
+
+    def H_Vpmu(self):
+        # Jacobian for pmu measurements of load voltages
+        print('To be implemented')
