@@ -46,14 +46,20 @@ class DpDse:
     SV: all load node voltages and all branch currents
     control inputs: all load injection currents and all generator voltages
     '''
-    def __init__(self, network, measurement_set, time_step, model_type=DpDse_Model.STANDARD,
+    def __init__(self, network, measurement_set, critical_nodes, time_step, model_type=DpDse_Model.STANDARD,
                  line_type=Line_Type.RL):
         if not isinstance(network, net.System):
             raise Exception("network must be an object of class Network of PyVolt")
 
         if not isinstance(measurement_set, measurement.MeasurementSet):
             raise Exception("measurement_set must be an object of class MeasurementSet of PyVolt")
-
+        
+        if not isinstance(critical_nodes, list):
+            raise Exception("critical_nodes must be passed as a list object")
+        
+        if not all(isinstance(item, net.Node) for item in critical_nodes):
+            raise Exception("all items of critical_nodes must be of PyVolt Network Node object type")
+        
         if not isinstance(model_type, DpDse_Model):
             raise Exception("model_type must be an object of class DpDse_Model")
 
@@ -63,6 +69,7 @@ class DpDse:
         self.model_type = model_type
         self.network = network
         self.measurement_set = measurement_set
+        self.critical_nodes = critical_nodes
         self.time_step = time_step
         self.line_type = line_type
         self.Adt = np.empty((0, 0))  # descretized A matrix
@@ -82,10 +89,43 @@ class DpDse:
         self.P_est = np.array([])  # estimation covariance
         self.P_pred = np.array([])  # prediction covariance
         self.vg = np.array([])  # array of generator voltage phasors measurement object as tuple (v_mag, v_ph).
-        self.sl = np.array([])  # array of load power injection measurement object as tuple (p, q)
-        self.il = np.array([])  # array of load current injection measurement object as tuple (il_mag, il_ph)
+        self.sl = np.array([])  # array of critical load power injection measurement object as tuple (p, q)
+        self.il = np.array([])  # array of critical load current injection measurement object as tuple (il_mag, il_ph)
         self.z = np.array([])  # array of measurement objects which will be used for correction step
-        self.R = np.empty((0, 0)) # measurement covariance matrix
+        self.Ac = np.array([]) # critical load incidence matrix size l by c, c is number of critical loads
+        self.Ac_d = np.array([]) # non-critical load incidence matrix
+        self.num_c = 0 # number of critical loads
+        self.num_nc = 0 # number of non-critical load
+    
+
+    def get_critical_non_critical_index(self):
+        get_EC_node_index = [load_node.index for load_node in self.network.get_EC_nodes()]
+        critical_nodes_index = [c_node.index for c_node in self.critical_nodes]
+        non_critical_nodes_index = [item for item in get_EC_node_index if item not in critical_nodes_index]
+
+        return critical_nodes_index, non_critical_nodes_index
+    
+    def get_non_critical_nodes(self):
+        all_load_nodes = self.network.get_EC_nodes()
+        return [item for item in all_load_nodes if item not in self.critical_nodes]
+    
+    def create_load_incidence_matrix(self):
+        get_EC_node_index = [load_node.index for load_node in self.network.get_EC_nodes()]
+        num_nodes = self.num_g + self.num_l
+        A = np.zeros((num_nodes, num_nodes))
+        c_nodes_idx, nc_nodes_idx = self.get_critical_non_critical_index()
+
+        for i in range(num_nodes):
+            for j in range(num_nodes):
+                if  j in c_nodes_idx and i == j:
+                    A[i, j] = 1
+                if j in nc_nodes_idx and i == j:
+                    A[i, j] = 1
+
+        self.Ac = A[np.ix_(get_EC_node_index, c_nodes_idx)]
+        self.Ac_d = A[np.ix_(get_EC_node_index, nc_nodes_idx)]
+
+
 
     def initialize_dse(self):
         fo = 50  # TODO: where can we get network nominal frequency information
@@ -111,7 +151,10 @@ class DpDse:
         self.num_b = num_branch
         self.num_g = num_gen
         self.num_l = num_load
+        self.num_c = len(self.critical_nodes)
+        self.num_nc = num_load - self.num_c
 
+        
         P_rLoad = np.array(
             [[1], [.9], [0.6], [0.6], [0.6], [1.5]])  # this can be built from the power flow results or CIM SV file
         P_rLoad = np.ones((num_load, 1)) # TODO: not really correct!
@@ -132,6 +175,9 @@ class DpDse:
                     self.network.get_branch_X()]
         cables_L = np.diag(branch_x) / w_o
         cables_C = np.diag(np.dot(abs(PS_A_L), self.network.get_branch_BCH()) * 0.5) / w_o
+
+        # create critical and non critical load incidence matrix Ac and Ac_d respectively
+        self.create_load_incidence_matrix()
 
         # create A, B matrices
         # creating A matrix
@@ -180,95 +226,80 @@ class DpDse:
         # Creating B matrix
         B11 = np.dot(np.linalg.inv(cables_L), PS_A_G.transpose())
         B12 = np.zeros((num_branch, num_gen))
-        B13 = np.zeros((num_branch, num_load))
-        B14 = np.zeros((num_branch, num_load))
+        B13 = np.zeros((num_branch, self.num_c))
+        B14 = np.zeros((num_branch, self.num_c))
 
         B21 = np.zeros((num_branch, num_gen))
         B22 = np.dot(np.linalg.inv(cables_L), PS_A_G.transpose())
-        B23 = np.zeros((num_branch, num_load))
-        B24 = np.zeros((num_branch, num_load))
+        B23 = np.zeros((num_branch, self.num_c))
+        B24 = np.zeros((num_branch, self.num_c))
 
         B31 = np.zeros((num_load, num_gen))
         B32 = np.zeros((num_load, num_gen))
         if self.line_type == Line_Type.PI:
-            B33 = -np.linalg.inv(cables_C)
+            B33 = -np.linalg.inv(cables_C) @ self.Ac
         else:
-            B33 = -np.eye(num_load)
-        B34 = np.zeros((num_load, num_load))
+            B33 = -np.eye(num_load) @ self.Ac
+        B34 = np.zeros((num_load, self.num_c))
 
         B41 = np.zeros((num_load, num_gen))
         B42 = np.zeros((num_load, num_gen))
-        B43 = np.zeros((num_load, num_load))
+        B43 = np.zeros((num_load, self.num_c))
         if self.line_type == Line_Type.PI:
-            B44 = -np.linalg.inv(cables_C)
+            B44 = -np.linalg.inv(cables_C) @ self.Ac
         else:
-            B44 = -np.eye(num_load)
+            B44 = -np.eye(num_load) @ self.Ac
 
-        SS_Bu = np.bmat([[B11, B12], [B21, B22], [B31, B32], [B41, B42]])
-        SS_Bd = np.bmat([[B13, B14], [B23, B24], [B33, B34], [B43, B44]])
+        # unknown control input matrix
+
+        G11 = np.zeros((num_branch, self.num_nc))
+        G12 = np.zeros((num_branch, self.num_nc))
+        G21 = np.zeros((num_branch, self.num_nc))
+        G22 = np.zeros((num_branch, self.num_nc))
+        if self.line_type == Line_Type.PI:
+            G31 = -np.linalg.inv(cables_C) @ self.Ac_d
+        else:
+            G31 = -np.eye(num_load) @ self.Ac_d
+        G32 = np.zeros((num_load, self.num_nc))
+        G41 = np.zeros((num_load, self.num_nc))
+        if self.line_type == Line_Type.PI:
+            G42 = -np.linalg.inv(cables_C) @ self.Ac_d
+        else:
+            G42 = -np.eye(num_load) @ self.Ac_d
+
         SS_A = np.bmat([[A11, A12, A13, A14], [A21, A22, A23, A24], [A31, A32, A33, A34], [A41, A42, A43, A44]])
         SS_B = np.bmat([[B11, B12, B13, B14], [B21, B22, B23, B24], [B31, B32, B33, B34], [B41, B42, B43, B44]])
+        SS_G = np.bmat([[G11, G12], [G21, G22], [G31, G32], [G41, G42]])
+        SS_Bcomb = np.bmat([[B11, B12, B13, B14, G11, G12], [B21, B22, B23, B24, G21, G22], [B31, B32, B33, B34, G31, G32], [B41, B42, B43, B44, G41, G42]])
         SS_A_disc = spy.linalg.expm(SS_A * self.time_step)
-        SS_B_disc = np.dot(
+        SS_Bcomb_disc = np.dot(
             np.dot(np.linalg.inv(SS_A), (spy.linalg.expm(np.dot(SS_A, self.time_step)) - np.eye(np.shape(SS_A)[0]))),
-            SS_B)
+            SS_Bcomb)
+        SS_B_disc = SS_Bcomb_disc[:, :self.num_g + self.num_c]
+        SS_G_disc = SS_Bcomb_disc[:, -self.num_nc:]
+
 
         if self.model_type == DpDse_Model.STANDARD:
             # create A and B matrix for standard case, i.e.,
             # SV: branch currents and load voltages in rectangular form
-            # u : generator voltages and load current injections in rectangular form
+            # u : generator voltages and critical load current injections in rectangular form
+            # uu : unknown control inputs - non-critical load current injections in rectangular form
             # either load current measurements are available or power injection measurements are available
             self.num_sv = 2 * num_branch + 2 * num_load
-            self.num_u = 2 * num_gen + 2 * num_load
+            self.num_u = 2 * num_gen + 2 * self.num_c 
+            self.num_uu = 2*self.num_nc # number of unknown inputs 
             self.Act = SS_A
             self.Bct = SS_B
+            self.Gct = SS_G
             self.Adt = SS_A_disc
             self.Bdt = SS_B_disc
+            self.Gdt = SS_G_disc
 
-        elif self.model_type == DpDse_Model.AUGMENTED:
-            # create A and B matrix for Augmented case, i.e.,
-            # SV: branch currents and load voltages, generator voltages and load current injections in rectangular form
-            # u :  Nothing
-            # Augmented state-space
-            self.num_sv = 2 * num_branch + 2 * num_load + 2 * num_gen + 2 * num_load
-            self.num_u = 0
-            self.Adt = np.bmat([[SS_A_disc, SS_B_disc], [np.zeros(((2 * num_gen + 2 * num_load), self.num_sv)),
-                                                         np.eye(2 * num_gen + 2 * num_load)]])
-            # B matrix is not required here, as X_dot = Ax
-            self.Bdt = np.zeros((self.num_sv, 1))
-
-            self.Act = np.bmat([[SS_A, SS_B], [np.zeros(((2 * num_gen + 2 * num_load), self.num_sv)),
-                                               np.eye(2 * num_gen + 2 * num_load)]])
-            # B matrix is not required here, as X_dot = Ax
-            self.Bct = np.zeros((self.num_sv, 1))
-
-        elif self.model_type == DpDse_Model.INPUT_LOAD_POWER:
-            # create A and B matrix for Load power case, i.e.,
-            # SV: branch currents and load voltages and load current injections in rectangular form
-            # u : generator voltages and load current injections calculated from power injections and voltage estimates
-            self.num_sv = 2 * num_branch + 2 * num_load + 2 * num_load
-            self.num_u = 2 * num_gen + 2 * num_load
-            tl = 10  # TODO: How to set this generically
-            Tl = tl * np.eye(2 * num_load)
-            SS_A = np.bmat([[SS_A, SS_Bd], [np.zeros((2 * num_load, 2 * num_load + 2 * num_branch)),
-                                            -np.linalg.inv(Tl)]])
-            SS_B = np.bmat([[SS_Bu, np.zeros((2 * num_load + 2 * num_branch, 2 * num_load))],
-                            [np.zeros((2 * num_load, 2 * num_gen)), -np.linalg.inv(Tl)]])
-            SS_A_disc = spy.linalg.expm(SS_A * self.time_step)
-            SS_B_disc = np.dot(np.dot(np.linalg.inv(SS_A),
-                                      (spy.linalg.expm(np.dot(SS_A, self.time_step)) - np.eye(np.shape(SS_A)[0]))),
-                               SS_B)
-            self.Adt = SS_A_disc
-            self.Bdt = SS_B_disc
-            self.Act = SS_A
-            self.Bct = SS_B
-
+        # TODO: implement for other DSE model augmented and load power
         # extract the control variables into self.vg and self.il or self.sl private variables
         self.separate_inputs()
 
-        # initialize initial estimation covariance
-        self.P_est = 1e-10 * np.ones((self.num_sv, self.num_sv))
-        
+
         # initialize SV using static se or power flow
         try:
             # TODO: the current injection as measurement is not considered in PyVolt! Pyvolt will throw error!
@@ -278,6 +309,9 @@ class DpDse:
             print("PyVolt SE threw error! State variables are initialized from power flow results!")
             static_se_results, num_iter = nv_powerflow.solve(self.network)
             self.initialize_sv(static_se_results)
+        
+        # initialize initial estimation covariance
+        self.P_est = 1e-10 * np.ones((self.num_sv, self.num_sv))
 
     def check_ss_consistency(self):
         # TODO: This consistency check is only valid for STANDARD model type
@@ -303,26 +337,24 @@ class DpDse:
             get_EC_node_index = [load_node.index for load_node in self.network.get_EC_nodes()]
             pf_vg = np.array(pf_node_voltages)[np.array(get_ES_node_index)]
             pf_vl = np.array(pf_node_voltages)[np.array(get_EC_node_index)]
-            pf_il = np.array(pf_node_currents)[np.array(get_EC_node_index)]
+
+            c_idx, nc_idx = self.get_critical_non_critical_index()
+            pf_il_c = np.array(pf_node_currents)[c_idx]
+            pf_il_nc = np.array(pf_node_currents)[nc_idx]
             pf_ibr = np.array(pf_br_currents)
             # converting line-line voltage to phase voltage: the state-space is built for per phase calculation
-            #x_init_pf_conv = np.concatenate(
-            #    (pf_ibr.real, pf_ibr.imag, pf_vl.real / np.sqrt(3), pf_vl.imag / np.sqrt(3)))
-            #u_init_pf_conv = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), pf_il.real, pf_il.imag))
-            ## negated load currents as current injections from loads are considered
-            #u_init_pf_curr_inj = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), - pf_il.real,
-            #                                     - pf_il.imag))
-
             x_init_pf_conv = np.concatenate(
-                (pf_ibr.real, pf_ibr.imag, pf_vl.real , pf_vl.imag ))
-            u_init_pf_conv = np.concatenate((pf_vg.real , pf_vg.imag, pf_il.real, pf_il.imag))
-            # negated load currents as current injections from loads are considered
-            u_init_pf_curr_inj = np.concatenate((pf_vg.real , pf_vg.imag , - pf_il.real,
-                                                 - pf_il.imag))
+                (pf_ibr.real, pf_ibr.imag, pf_vl.real / np.sqrt(3), pf_vl.imag / np.sqrt(3)))
+            u_init_pf_conv = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), pf_il_c.real,
+                                                  pf_il_c.imag, pf_il_nc.real, pf_il_nc.imag))
+            # negated load currents as current injections from loads are considered and rearranging critical and then non-critical nodes
+            u_init_pf_curr_inj = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), - pf_il_c.real,
+                                                 - pf_il_c.imag, - pf_il_nc.real, - pf_il_nc.imag))
 
-            bu = np.dot(self.Bct, u_init_pf_conv)
+            combine_B = np.bmat([[self.Bct, self.Gct]])
+            bu = np.dot(combine_B, u_init_pf_conv)
             # solve for x = inv(A)*Bu
-            bu_curr_inj = np.dot(self.Bct, u_init_pf_curr_inj)
+            bu_curr_inj = np.dot(combine_B, u_init_pf_curr_inj)
             x_init_from_ss = np.dot(np.linalg.inv(self.Act), -bu_curr_inj.T)
 
             print("x_init direct pf: ", x_init_pf_conv)
@@ -347,7 +379,7 @@ class DpDse:
         i_mag = []  # list to extract load current injection magnitude measurement objects
         i_ph = []  # list to extract load current injection phase measurement objects
         z = []  # list of rest of the measurement objects for use in correction step
-
+        z_val = []
         gen_uuid = [gen_node.uuid for gen_node in self.network.get_ES_nodes()]
         load_uuid = [load_node.uuid for load_node in self.network.get_EC_nodes()]
 
@@ -367,18 +399,11 @@ class DpDse:
                     i_mag.append(meas)
                 if meas.meas_type == measurement.MeasType.Ipmu_inj_phase and meas.element.uuid in load_uuid:
                     i_ph.append(meas)
-                    
+        
         all_u = v_mag + v_ph + p + q + i_mag + i_ph
-        
-        z = measurement.MeasurementSet()
+        z = [item for item in self.measurement_set.measurements if item not in all_u]
 
-        for item in self.measurement_set.measurements:
-            if item not in all_u:
-               z.measurements.append(item)
-        
-        self.z = z
-
-        z_vals = [i.meas_value for i in z.measurements]
+        z_vals = [i.meas_value for i in z]
         print("vals in z_new: ", z_vals)
 
         # Create a dictionary to map uuid to measurement objects
@@ -395,49 +420,32 @@ class DpDse:
         if vmag_dict and vph_dict:
             self.vg = [(vmag_dict[x], vph_dict[x]) for x in gen_uuid]
         if p_dict and q_dict: # here it is assumed that real and reactive power are obtained together
-            self.sl = [(p_dict[x], q_dict[x]) for x in load_uuid]
+            self.sl = [(p_dict[x.uuid], q_dict[x.uuid]) for x in self.critical_nodes] # only critical loads injection for known control inputs
         if i_inj_mag_dict and i_inj_ph_dict:
-            self.il = [(i_inj_mag_dict[x], i_inj_ph_dict[x]) for x in load_uuid]
-        
+            self.il = [(i_inj_mag_dict[x.uuid], i_inj_ph_dict[x.uuid]) for x in self.critical_nodes] # only critical loads injection for known control inputs
+        self.z = np.array(z)
+
         # TODO: check for power injections and current injections, the sign needs to be changed or not
 
-    def z_R_pmu(self, cov, index_mag, index_phase):
-        # convert all phasor measurements to rectangular
-        # find covariance of phasor measurements in rectangular
-        for index, (idx_mag, idx_theta) in enumerate(zip(index_mag, index_phase)):
-            value_amp = self.z.measurements[idx_mag].meas_value_act
-            value_theta = self.z.measurements[idx_theta].meas_value_act
-            z_cmplx = value_amp * np.exp(1j * value_theta)   
-            self.z.measurements[idx_mag].meas_value_act = np.real(z_cmplx) # replacing magnitude value with real value
-            self.z.measurements[idx_theta].meas_value_act = np.imag(z_cmplx) # replacing phase value with imaginary value
-            rot_mat = np.array([[np.cos(value_theta), - value_amp * np.sin(value_theta)],
-                                [np.sin(value_theta), value_amp * np.cos(value_theta)]])
-            starting_cov = np.array([[cov[idx_mag], 0], [0, cov[idx_theta]]])
-            final_cov = np.inner(rot_mat, np.inner(starting_cov, rot_mat.transpose()))
-            self.R[idx_mag][idx_mag] = final_cov[0][0]
-            self.R[idx_theta][idx_theta] = final_cov[1][1]
-            self.R[idx_mag][idx_theta] = final_cov[0][1]
-            self.R[idx_theta][idx_mag] = final_cov[1][0]
-    
-    def assemble_u(self):
+    def assemble_inputs(self):
         # this function constructs u vector depending upon the kind of model in the required form
         # if STANDARD: [vg_re, vg_im, il_re, il_im]
         # if INPUT_LOAD_POWER: [vg_re, vg_im, il_calc_re, il_calc_im]
         # if AUGMENTED: [0.....0]
         #TODO: yet to check if this is working correctly!!
-        vg_mag = np.array([m[0].meas_value_act for m in self.vg]) # It is assumed that Vg is a phasor
-        vg_ph = np.array([m[1].meas_value_act for m in self.vg])
+        vg_mag = np.array([m[0].meas_value for m in self.vg])
+        vg_ph = np.array([m[1].meas_value for m in self.vg])
         vg_cmplx = phasor_complex(vg_mag, vg_ph)
         vg = np.concatenate((vg_cmplx.real, vg_cmplx.imag))
         if self.model_type == DpDse_Model.STANDARD:
-            il_mag = np.array([m[0].meas_value_act for m in self.il])
-            il_ph = np.array([m[1].meas_value_act for m in self.il])
+            il_mag = np.array([m[0].meas_value for m in self.il])
+            il_ph = np.array([m[1].meas_value for m in self.il])
             il_cmplx = phasor_complex(il_mag, il_ph)
             il = np.concatenate((il_cmplx.real, il_cmplx.imag))
-            self.u = np.concatenate((vg, -il)) # TODO: negate as injection current ?
+            self.u = np.concatenate((vg, il))
         elif self.model_type == DpDse_Model.INPUT_LOAD_POWER:
             il_calc = self.power_to_current_injection()
-            self.u = np.concatenate((vg, -il_calc)) # TODO: negate as injection current ?
+            self.u = np.concatenate((vg, il_calc))
         elif self.model_type == DpDse_Model.AUGMENTED:
             self.u = np.zeros((self.num_sv, 1))  # no control variables, it is only X_dot = Ax
 
@@ -456,7 +464,7 @@ class DpDse:
         return il
 
     def initialize_sv(self, static_se_results):
-        # Initialize state variables (in actuals, per phase)
+        # Perform state estimation
         ib_re = []
         ib_im = []
         vl_re = []
@@ -468,55 +476,38 @@ class DpDse:
             if node.topology_node.type == net.BusType.PQ:
                 vl_re.append(node.voltage.real)
                 vl_im.append(node.voltage.imag)
-        self.x_est = np.concatenate((ib_re, ib_im, vl_re/np.sqrt(3), vl_im/np.sqrt(3)))
+        self.x_est = np.concatenate((ib_re, ib_im, vl_re, vl_im))
 
     def predict(self):
         # TODO: yet to check if this works correctly!!
         # assemble u vector depending upon the model type into required form
-        self.assemble_u()
+        self.assemble_inputs()
+        print("self.u: ", self.u)
+        for i in self.z:
+            print(i.meas_value)
         # predict the states for next time-step
-        # self.x_pred = self.Adt @ self.x_est + self.Bdt @ self.u.T
+        # self.x_pred = self.Adt * self.x_est + self.Bdt * self.u.T
+        self.x_pred = self.Adt @ self.x_est
         self.P_pred = self.Adt @ self.P_est @ (self.Adt).T
 
-        # TODO: need to convert per unit control inputs to per phase actuals
-        print("next predicted states.....")
-        self.x_pred = self.Adt @ self.x_est + self.Bdt @ self.u.T
-        print(self.x_pred)
-        print("initial states: ", self.x_est)
-
+    
     def correct(self):
-    	# Step 1: build the measurement functions
-        # Step 2: build the Jacobian
-        # Step 3: build R matrix
-        # Step 4: build Kalman gain
-        # Step 5: estimate x_est
+        # Step 1: look if new measurements received
+        # Step 2: update the measurements vector
+        # Step 3: build the measurement functions
+        # Step 4: build the Jacobian
+        # Step 5: build F matrix
+        # Step 6: build R matrix
+        # Step 7: build R_d matrix
+        # Step 8: build M matrix
+        # Step 9: build d vector of unknown inputs
+        # Step 10: update prediction x_pred
+        # Step 11: build Kalman gain
+        # Step 12: estimate x_est
 
-        covar = self.z.getCovarianceMatrixActuals()
-        self.R = np.diag(covar)
-        # build h and H for branch current phasors
-        Ib_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_mag)
-        Ib_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_phase)
-        self.z_R_pmu(covar, Ib_mag_idx, Ib_phase_idx)
-
-        # build h and H for branch current magnitude
-
-        # build h and H for branch powers
-
-        # build h and H for load voltage magnitudes
-
-        # build h and H for load voltage phasors
-
-        # build h and H for generator current injections
-
-        # stack measurement functions
-        # all the sub-matrixes of H calcualted so far are merged in a unique matrix
-        #H = np.concatenate((H1, H2, H3, H4, H5, H6), axis=0)
-        # h(x) sub-vectors are concatenated
-        #y = np.concatenate((h1, h2, h3, h4, h5, h6), axis=0)
-        # stack Jacobians
-
-
+        
         return 1
+        
 
     def extract_branch_currents_estimation(self):
         return self.x_est[:2 * self.num_b]
@@ -580,5 +571,3 @@ class DpDse:
     def H_Vpmu(self):
         # Jacobian for pmu measurements of load voltages
         print('To be implemented')
-
-    
