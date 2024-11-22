@@ -1,0 +1,1070 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Gridhound's cimpy.serializer -->
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cim="http://iec.ch/TC57/2013/CIM-schema-cim16#" xmlns:entsoe="http://entsoe.eu/CIM/SchemaExtension/3/1#" xmlns:md="http://iec.ch/TC57/61970-552/ModelDescription/1#" xmlns:gh="http://gridhound.de/2020/CIM-schema-cim16-extension#">
+  <md:FullModel rdf:about="urn:uuid:d18fa62c-225d-4142-9e3c-45cbe9bc47f1">
+    <md:Model.created>2024-06-19T10:25:03.233115Z</md:Model.created>
+    <md:Model.profile>http://entsoe.eu/CIM/EquipmentCore/3/1</md:Model.profile>
+    <md:Model.profile>http://entsoe.eu/CIM/EquipmentOperation/3/1</md:Model.profile>
+    <md:Model.profile>http://entsoe.eu/CIM/Topology/4/1</md:Model.profile>
+    <md:Model.profile>http://entsoe.eu/CIM/SteadyStateHypothesis/1/1</md:Model.profile>
+    <md:Model.profile>http://gridhound.de/CIM/EstimationZones/1/1</md:Model.profile>
+    <md:Model.scenarioTime>2020-01-01T00:00:00Z</md:Model.scenarioTime>
+  </md:FullModel>
+  <cim:BaseVoltage rdf:ID="_1e539e19-e8a2-536b-b0af-51ee68d7cf7c">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>12.66 kV</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>12.66 kV</entsoe:IdentifiedObject.shortName>
+    <cim:BaseVoltage.nominalVoltage>12.66</cim:BaseVoltage.nominalVoltage>
+  </cim:BaseVoltage>
+  <cim:VoltageLevel rdf:ID="_a0b7340e-4e4f-5257-96e4-0c2f86b3550c">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 1 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 1 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_dbd51452-f92d-50b7-8a10-b307dde06ad1" />
+  </cim:VoltageLevel>
+  <cim:CoordinateSystem rdf:ID="_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16">
+    <cim:IdentifiedObject.description>used by the Global Positioning System among others</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>WGS84_GPS coordinate system</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>WGS84_GPS coordinate system</entsoe:IdentifiedObject.shortName>
+    <cim:CoordinateSystem.crsUrn>urn:ogc:def:uom:EPSG::4326</cim:CoordinateSystem.crsUrn>
+  </cim:CoordinateSystem>
+  <cim:Location rdf:ID="_dbd51452-f92d-50b7-8a10-b307dde06ad1">
+    <cim:IdentifiedObject.description>Bus 1 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 1 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 1 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_5adb600d-2843-5fd8-a077-e9a8e383f39d">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_dbd51452-f92d-50b7-8a10-b307dde06ad1" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_2f314e3b-57eb-5d60-831d-99c69a1c0d81">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_a0b7340e-4e4f-5257-96e4-0c2f86b3550c" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_cbc32b9c-8f9b-51de-891e-5794694a6fa5">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 2 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 2 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_1beb9bad-047d-534d-b9cb-ef8b99e2fca9" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_1beb9bad-047d-534d-b9cb-ef8b99e2fca9">
+    <cim:IdentifiedObject.description>Bus 2 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 2 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 2 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_b2bde034-a61e-58fa-91f1-98afced47334">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_1beb9bad-047d-534d-b9cb-ef8b99e2fca9" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_38c82309-1d7f-5e7c-b41e-09c7d6d37071">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_cbc32b9c-8f9b-51de-891e-5794694a6fa5" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_07f60379-06b8-5cef-9dc8-303833fd5df1">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 3 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 3 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_01c7c7f0-54c0-5512-bf9f-02d5b861cb4e" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_01c7c7f0-54c0-5512-bf9f-02d5b861cb4e">
+    <cim:IdentifiedObject.description>Bus 3 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 3 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 3 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_78e6e4a6-da6e-55f9-8e83-4ab274562c77">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_01c7c7f0-54c0-5512-bf9f-02d5b861cb4e" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_8cfa0329-80eb-5ce6-abcb-2de22c2d216c">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 3</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_07f60379-06b8-5cef-9dc8-303833fd5df1" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_a93c900a-f936-5067-84c7-896fdcd3f1ce">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 4 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 4 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_ad81f25d-30ea-5bb5-9ab1-16a80f8d581f" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_ad81f25d-30ea-5bb5-9ab1-16a80f8d581f">
+    <cim:IdentifiedObject.description>Bus 4 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 4 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 4 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_6f83229e-5e0f-5e1c-bc22-2d6d09d64be7">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_ad81f25d-30ea-5bb5-9ab1-16a80f8d581f" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_e9f0016a-b8b8-5c13-bdac-c25cc7e3ae32">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 4</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_a93c900a-f936-5067-84c7-896fdcd3f1ce" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_16f9cb51-192f-5424-ab25-3d4b869f41ab">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 5 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 5 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_1be6bc03-1bca-5636-9827-a32870b790e5" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_1be6bc03-1bca-5636-9827-a32870b790e5">
+    <cim:IdentifiedObject.description>Bus 5 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 5 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 5 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_017ce2c5-ee8b-53f0-91f6-7c4fad0ee2f6">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_1be6bc03-1bca-5636-9827-a32870b790e5" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_ebb6bf0b-3921-514a-aeb3-529a2dc7d0a5">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 5</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_16f9cb51-192f-5424-ab25-3d4b869f41ab" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_0d0bb13f-aa48-5d48-8a49-7a7926c75bc1">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 6 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 6 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_0be3806d-743c-5894-9cfa-98351ec72a67" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_0be3806d-743c-5894-9cfa-98351ec72a67">
+    <cim:IdentifiedObject.description>Bus 6 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 6 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 6 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_6a61f397-431e-5aa7-8efa-63a7c9ffa95e">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_0be3806d-743c-5894-9cfa-98351ec72a67" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_2248cb01-e4ac-573f-a813-5d675310820f">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 6</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_0d0bb13f-aa48-5d48-8a49-7a7926c75bc1" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_e980aef9-9649-5bea-9d85-a113abea1291">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 7 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 7 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_d6f797cd-f56c-5c6b-aff2-edbb206a9b59" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_d6f797cd-f56c-5c6b-aff2-edbb206a9b59">
+    <cim:IdentifiedObject.description>Bus 7 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 7 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 7 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_b2229606-b83e-59b2-8e29-4eb04470e2be">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_d6f797cd-f56c-5c6b-aff2-edbb206a9b59" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_f6849451-1b54-5b7c-bc67-4c766345b423">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 7</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_e980aef9-9649-5bea-9d85-a113abea1291" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_d35f4420-3937-5d22-b63b-3477b09ee982">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 8 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 8 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_9577cc3e-b031-5a6c-9310-a0c2b5e41508" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_9577cc3e-b031-5a6c-9310-a0c2b5e41508">
+    <cim:IdentifiedObject.description>Bus 8 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 8 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 8 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_23224249-6468-51e7-85dd-6d1459da86cc">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_9577cc3e-b031-5a6c-9310-a0c2b5e41508" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_7ee8d88c-1a83-5ce2-8056-333aa196ba71">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 8</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_d35f4420-3937-5d22-b63b-3477b09ee982" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_ede33905-d10e-5161-a8b0-fd2d24f57118">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 9 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 9 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_ae622a52-1348-5093-8784-a359116b0b25" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_ae622a52-1348-5093-8784-a359116b0b25">
+    <cim:IdentifiedObject.description>Bus 9 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 9 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 9 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_7c73325f-bebf-51db-8a17-9a00f7b86a00">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_ae622a52-1348-5093-8784-a359116b0b25" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_26a560cd-5d87-5dd7-b588-cb2d8efa50ce">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 9</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_ede33905-d10e-5161-a8b0-fd2d24f57118" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:VoltageLevel rdf:ID="_6778b63c-8254-5a7a-a124-3986dd9f7a13">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 10 Container</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 10 Container</entsoe:IdentifiedObject.shortName>
+    <cim:PowerSystemResource.Location rdf:resource="#_d1a7f11e-8edb-5448-92fb-0592a6650092" />
+  </cim:VoltageLevel>
+  <cim:Location rdf:ID="_d1a7f11e-8edb-5448-92fb-0592a6650092">
+    <cim:IdentifiedObject.description>Bus 10 Container Location</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 10 Container Location</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Bus 10 Container Location</entsoe:IdentifiedObject.shortName>
+    <cim:Location.CoordinateSystem rdf:resource="#_e65e3a43-bd7c-5ad1-b1d6-86ea6589dc16" />
+  </cim:Location>
+  <cim:PositionPoint rdf:ID="_c73fbaa2-1034-5684-a58a-dbd2cd3ce103">
+    <cim:PositionPoint.sequenceNumber>1</cim:PositionPoint.sequenceNumber>
+    <cim:PositionPoint.xPosition></cim:PositionPoint.xPosition>
+    <cim:PositionPoint.yPosition></cim:PositionPoint.yPosition>
+    <cim:PositionPoint.Location rdf:resource="#_d1a7f11e-8edb-5448-92fb-0592a6650092" />
+  </cim:PositionPoint>
+  <cim:TopologicalNode rdf:ID="_ce4d9ad0-927b-5126-b1e2-b0e9090aae41">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Bus 10</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>9</entsoe:IdentifiedObject.shortName>
+    <cim:TopologicalNode.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <cim:TopologicalNode.ConnectivityNodeContainer rdf:resource="#_6778b63c-8254-5a7a-a124-3986dd9f7a13" />
+    <gh:TopologicalNode.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:TopologicalNode>
+  <cim:Line rdf:ID="_ac7b06a4-9a0b-520d-a9dc-90d403706f72">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>0</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_6c5a2859-a622-5d56-9d11-d87844fff837">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>0_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_27843fdd-4c6e-5abb-a9d4-24f3d946f1a1" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_84339874-8a64-5740-ac67-fac8b0745742">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>0_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_6c5a2859-a622-5d56-9d11-d87844fff837" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_87e1ca6f-2c4e-5c7c-9d62-8d16aa311e02">
+    <cim:IdentifiedObject.description>0_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>0_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_27843fdd-4c6e-5abb-a9d4-24f3d946f1a1" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_2f314e3b-57eb-5d60-831d-99c69a1c0d81" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_d408d27f-62be-5626-9b0b-fe007bee5533">
+    <cim:IdentifiedObject.description>0_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>0_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_27843fdd-4c6e-5abb-a9d4-24f3d946f1a1" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_38c82309-1d7f-5e7c-b41e-09c7d6d37071" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_27843fdd-4c6e-5abb-a9d4-24f3d946f1a1">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>0_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_ac7b06a4-9a0b-520d-a9dc-90d403706f72" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.0992</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.0992</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.047001368</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.047001368</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Line rdf:ID="_3d54bd05-138a-5a22-86e3-e671026702cb">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_02b0357e-ad98-5a06-b95b-b960cd91bdcb">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>1_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_1732b6e8-3160-53e9-a59f-842b74f42405" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_b1bbe690-b952-5f04-8211-2758cf3259c3">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>1_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_02b0357e-ad98-5a06-b95b-b960cd91bdcb" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_6fdbb7b4-68a7-5598-ae5a-14d6bb8e6807">
+    <cim:IdentifiedObject.description>1_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>1_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_1732b6e8-3160-53e9-a59f-842b74f42405" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_38c82309-1d7f-5e7c-b41e-09c7d6d37071" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_1f5593df-2705-5a25-a95d-93937e0c4928">
+    <cim:IdentifiedObject.description>1_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>1_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_1732b6e8-3160-53e9-a59f-842b74f42405" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_8cfa0329-80eb-5ce6-abcb-2de22c2d216c" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_1732b6e8-3160-53e9-a59f-842b74f42405">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>1_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_3d54bd05-138a-5a22-86e3-e671026702cb" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.493</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.493</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.251101218</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.251101218</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Line rdf:ID="_b8a321db-0ad6-59f7-8645-28bfaebb74ad">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_89831b13-3c63-5107-b876-8f9c585ae1d5">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>2_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_9aa80551-1b6f-57a0-a385-5cf78e8c5b7b" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_b0a2486c-a8ef-5894-90b9-4d7069e2a122">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>2_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_89831b13-3c63-5107-b876-8f9c585ae1d5" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_7526eef0-2b53-5e91-a175-cf86768c5475">
+    <cim:IdentifiedObject.description>2_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>2_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_9aa80551-1b6f-57a0-a385-5cf78e8c5b7b" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_38c82309-1d7f-5e7c-b41e-09c7d6d37071" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_72d4f54c-a3a8-5bb1-83a7-7c6ab3f964a0">
+    <cim:IdentifiedObject.description>2_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>2_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_9aa80551-1b6f-57a0-a385-5cf78e8c5b7b" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_7ee8d88c-1a83-5ce2-8056-333aa196ba71" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_9aa80551-1b6f-57a0-a385-5cf78e8c5b7b">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>2_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_b8a321db-0ad6-59f7-8645-28bfaebb74ad" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.164</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.164</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.156498438</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.156498438</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Line rdf:ID="_1cb9c561-f50d-5c52-ab84-ce830ed03864">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>3</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_43078947-3408-5174-96de-b4c81dfd27a5">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>3_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_ceee713b-5155-57a3-a7af-70ed055874db" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_6a93cd95-2440-5cb9-af70-929e027c7cf1">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>3_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_43078947-3408-5174-96de-b4c81dfd27a5" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_1736f4e4-a063-5ef5-b195-aff5722ca740">
+    <cim:IdentifiedObject.description>3_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>3_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_ceee713b-5155-57a3-a7af-70ed055874db" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_8cfa0329-80eb-5ce6-abcb-2de22c2d216c" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_0c1acfdb-83b5-559e-8273-deb05cd72e57">
+    <cim:IdentifiedObject.description>3_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>3_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_ceee713b-5155-57a3-a7af-70ed055874db" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_e9f0016a-b8b8-5c13-bdac-c25cc7e3ae32" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_ceee713b-5155-57a3-a7af-70ed055874db">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>3_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_1cb9c561-f50d-5c52-ab84-ce830ed03864" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.366</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.366</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.186390692</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.186390692</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Line rdf:ID="_a478741b-8893-56ca-a409-2417990e6341">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>4</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_ac6fdaa4-9278-5a12-9641-ed3c9abbcf2a">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>4_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_474c5e1e-bf6a-57f6-9587-580cf6b18994" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_0f4ed119-444b-5f8f-93a9-4e2ca733a9c4">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>4_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_ac6fdaa4-9278-5a12-9641-ed3c9abbcf2a" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_38b1a91f-dfd6-5789-a0df-bfd10faf897c">
+    <cim:IdentifiedObject.description>4_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>4_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_474c5e1e-bf6a-57f6-9587-580cf6b18994" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_8cfa0329-80eb-5ce6-abcb-2de22c2d216c" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_3ef0bb7c-0222-5d62-9c29-6ed015fba9e6">
+    <cim:IdentifiedObject.description>4_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>4_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_474c5e1e-bf6a-57f6-9587-580cf6b18994" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_26a560cd-5d87-5dd7-b588-cb2d8efa50ce" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_474c5e1e-bf6a-57f6-9587-580cf6b18994">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>4_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_a478741b-8893-56ca-a409-2417990e6341" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.4512</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.4512</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.308300195</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.308300195</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Line rdf:ID="_874fef2f-1b0d-5bb5-94e7-e35ec56b9117">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>5</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_8a34eac7-d875-53ff-8660-9b22dd6dded3">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>5_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_9251e76f-3237-536b-801b-a92221dc6d32" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_689cdc92-e029-59be-a7f7-9f4c4d1ca6f4">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>5_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_8a34eac7-d875-53ff-8660-9b22dd6dded3" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_3512bf8c-0981-51f9-a677-53bf6c7b13ea">
+    <cim:IdentifiedObject.description>5_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>5_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_9251e76f-3237-536b-801b-a92221dc6d32" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_e9f0016a-b8b8-5c13-bdac-c25cc7e3ae32" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_b3294d71-1af5-54f2-a4aa-624193b3971f">
+    <cim:IdentifiedObject.description>5_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>5_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_9251e76f-3237-536b-801b-a92221dc6d32" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_ebb6bf0b-3921-514a-aeb3-529a2dc7d0a5" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_9251e76f-3237-536b-801b-a92221dc6d32">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>5_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_874fef2f-1b0d-5bb5-94e7-e35ec56b9117" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.3844</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.3844</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.194100161</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.194100161</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Line rdf:ID="_53b69ffc-a2cd-593b-8c5e-18abd207889b">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>6</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_beb3f4f5-17b9-5d65-94bc-dcac7c634d6d">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>6_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_ad9f201a-d517-5acd-8fef-6402b5b9c56b" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_09a7abc5-06ba-5f59-9238-41e74721cec5">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>6_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_beb3f4f5-17b9-5d65-94bc-dcac7c634d6d" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_ea563d0a-5668-5af8-b262-1eb128270e4c">
+    <cim:IdentifiedObject.description>6_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>6_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_ad9f201a-d517-5acd-8fef-6402b5b9c56b" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_ebb6bf0b-3921-514a-aeb3-529a2dc7d0a5" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_3d97c107-ac7a-5902-988e-7fb86f2a119e">
+    <cim:IdentifiedObject.description>6_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>6_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_ad9f201a-d517-5acd-8fef-6402b5b9c56b" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_2248cb01-e4ac-573f-a813-5d675310820f" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_ad9f201a-d517-5acd-8fef-6402b5b9c56b">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>6_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_53b69ffc-a2cd-593b-8c5e-18abd207889b" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.819</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.819</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.72256631</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.72256631</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Line rdf:ID="_e207df05-ed99-5024-b45c-e1ca08859270">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>7</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_c9ca9cdc-e088-53c5-8d64-a6f638cd096a">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>7_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_d65ac903-578e-55df-b34b-62fafe577f64" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_a57fe5ad-63e9-50b2-a90a-73be40b3061a">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>7_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_c9ca9cdc-e088-53c5-8d64-a6f638cd096a" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_08e6a231-4e5e-512a-b594-041065c6e3ce">
+    <cim:IdentifiedObject.description>7_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>7_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_d65ac903-578e-55df-b34b-62fafe577f64" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_2248cb01-e4ac-573f-a813-5d675310820f" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_3595a5d8-c3a5-5036-9a7c-6312bca2fa67">
+    <cim:IdentifiedObject.description>7_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>7_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_d65ac903-578e-55df-b34b-62fafe577f64" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_ce4d9ad0-927b-5126-b1e2-b0e9090aae41" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_d65ac903-578e-55df-b34b-62fafe577f64">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>7_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_e207df05-ed99-5024-b45c-e1ca08859270" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.203</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.203</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.103399239</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.103399239</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Line rdf:ID="_09d12a63-45d9-5d95-a0f4-cfd5156f42c6">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>8</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8</entsoe:IdentifiedObject.shortName>
+  </cim:Line>
+  <cim:OperationalLimitSet rdf:ID="_682c3bc8-10f0-5316-8adb-fd29129835cb">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>8_1 limits</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8_1 limits</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimitSet.Equipment rdf:resource="#_550c5fc9-098c-5b3c-959f-b0620e5b99e7" />
+  </cim:OperationalLimitSet>
+  <cim:CurrentLimit rdf:ID="_9dfcb32f-f68a-5581-932d-093ba4291a66">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>8_1 current limit</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8_1 current limit</entsoe:IdentifiedObject.shortName>
+    <cim:OperationalLimit.OperationalLimitSet rdf:resource="#_682c3bc8-10f0-5316-8adb-fd29129835cb" />
+  </cim:CurrentLimit>
+  <cim:Terminal rdf:ID="_a72581c4-b319-5dbe-a7dc-f3496c9517fe">
+    <cim:IdentifiedObject.description>8_1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>8_1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8_1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_550c5fc9-098c-5b3c-959f-b0620e5b99e7" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_2248cb01-e4ac-573f-a813-5d675310820f" />
+  </cim:Terminal>
+  <cim:Terminal rdf:ID="_1a5cd8e5-eef1-526f-a12c-13f60d14c596">
+    <cim:IdentifiedObject.description>8_1-T2</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>8_1-T2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8_1-T2</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>2</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_550c5fc9-098c-5b3c-959f-b0620e5b99e7" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_f6849451-1b54-5b7c-bc67-4c766345b423" />
+  </cim:Terminal>
+  <cim:ACLineSegment rdf:ID="_550c5fc9-098c-5b3c-959f-b0620e5b99e7">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>8_1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8_1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_09d12a63-45d9-5d95-a0f4-cfd5156f42c6" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_1e539e19-e8a2-536b-b0af-51ee68d7cf7c" />
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:Conductor.length>1.</cim:Conductor.length>
+    <cim:ACLineSegment.b0ch>0.</cim:ACLineSegment.b0ch>
+    <cim:ACLineSegment.bch>0.</cim:ACLineSegment.bch>
+    <cim:ACLineSegment.g0ch>0.</cim:ACLineSegment.g0ch>
+    <cim:ACLineSegment.gch>0.</cim:ACLineSegment.gch>
+    <cim:ACLineSegment.r>0.1872</cim:ACLineSegment.r>
+    <cim:ACLineSegment.r0>0.1872</cim:ACLineSegment.r0>
+    <cim:ACLineSegment.x>0.628318531</cim:ACLineSegment.x>
+    <cim:ACLineSegment.x0>0.628318531</cim:ACLineSegment.x0>
+  </cim:ACLineSegment>
+  <cim:Terminal rdf:ID="_ba96018e-688e-500c-8544-c676ff3ff8dd">
+    <cim:IdentifiedObject.description>0-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>0-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_14c4f4eb-f6f1-59d4-ae70-d246498c2c75" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_38c82309-1d7f-5e7c-b41e-09c7d6d37071" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_14c4f4eb-f6f1-59d4-ae70-d246498c2c75">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>0</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_cbc32b9c-8f9b-51de-891e-5794694a6fa5" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>1.</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.6</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_6a3dcc5d-bef9-570a-a450-faee020f7fb4">
+    <cim:IdentifiedObject.description>1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_a0052722-9ea8-5c96-970e-fefabece0880" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_8cfa0329-80eb-5ce6-abcb-2de22c2d216c" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_a0052722-9ea8-5c96-970e-fefabece0880">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_07f60379-06b8-5cef-9dc8-303833fd5df1" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>0.9</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.4</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_24038bdc-53d7-502b-a238-71f92424bcaa">
+    <cim:IdentifiedObject.description>2-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>2-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_fc4b59b8-ce28-5957-8d17-07c9b4aac559" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_e9f0016a-b8b8-5c13-bdac-c25cc7e3ae32" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_fc4b59b8-ce28-5957-8d17-07c9b4aac559">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>2</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_a93c900a-f936-5067-84c7-896fdcd3f1ce" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>0.6</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.3</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_5512b462-61ec-5125-b059-b0f783267b58">
+    <cim:IdentifiedObject.description>3-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>3-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_21c62518-3cf9-55a7-80eb-be742868f732" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_ebb6bf0b-3921-514a-aeb3-529a2dc7d0a5" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_21c62518-3cf9-55a7-80eb-be742868f732">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>3</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_16f9cb51-192f-5424-ab25-3d4b869f41ab" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>0.6</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.2</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_adfd5814-87cf-5cdb-a8b0-f2a0e60e2187">
+    <cim:IdentifiedObject.description>4-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>4-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_62d00b94-2ea4-5708-bfe8-222e684b45da" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_2248cb01-e4ac-573f-a813-5d675310820f" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_62d00b94-2ea4-5708-bfe8-222e684b45da">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>4</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>4</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_0d0bb13f-aa48-5d48-8a49-7a7926c75bc1" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>0.6</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.2</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_e7097ea0-f34b-5d77-b267-bd70472765e7">
+    <cim:IdentifiedObject.description>5-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>5-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_2e90466a-c04c-52a8-8d8b-5bf5d1222f49" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_f6849451-1b54-5b7c-bc67-4c766345b423" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_2e90466a-c04c-52a8-8d8b-5bf5d1222f49">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>5</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>5</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_e980aef9-9649-5bea-9d85-a113abea1291" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>0.2</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.1</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_7b6513c5-1dc6-527d-81c2-0ad49b838868">
+    <cim:IdentifiedObject.description>6-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>6-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_1034ebee-e74e-5be3-91bd-c079469d058c" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_7ee8d88c-1a83-5ce2-8056-333aa196ba71" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_1034ebee-e74e-5be3-91bd-c079469d058c">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>6</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>6</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_d35f4420-3937-5d22-b63b-3477b09ee982" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>0.4</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.2</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_b346d575-1e86-51d8-beaf-eb89622cea31">
+    <cim:IdentifiedObject.description>7-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>7-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_743d955a-7bae-5861-ade8-8a2e5d4e24a9" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_26a560cd-5d87-5dd7-b588-cb2d8efa50ce" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_743d955a-7bae-5861-ade8-8a2e5d4e24a9">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>7</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>7</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_ede33905-d10e-5161-a8b0-fd2d24f57118" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>0.9</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.001</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_0c07da15-ef86-5592-bb93-ca97cec0fe8b">
+    <cim:IdentifiedObject.description>8-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>8-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_3970e382-3c83-5cd3-b108-c8fd8f51161b" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_ce4d9ad0-927b-5126-b1e2-b0e9090aae41" />
+  </cim:Terminal>
+  <cim:EnergyConsumer rdf:ID="_3970e382-3c83-5cd3-b108-c8fd8f51161b">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>8</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>8</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_6778b63c-8254-5a7a-a124-3986dd9f7a13" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergyConsumer.p>1.5</cim:EnergyConsumer.p>
+    <cim:EnergyConsumer.phaseConnection rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseShuntConnectionKind.Y" />
+    <cim:EnergyConsumer.q>0.5</cim:EnergyConsumer.q>
+  </cim:EnergyConsumer>
+  <cim:Terminal rdf:ID="_77584224-3eaa-50aa-b8d9-04f7d809705f">
+    <cim:IdentifiedObject.description>Gen 1-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Gen 1-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Gen 1-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_dd546382-ea32-5870-ad58-edf3facd4c3a" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_2f314e3b-57eb-5d60-831d-99c69a1c0d81" />
+  </cim:Terminal>
+  <cim:EnergySource rdf:ID="_dd546382-ea32-5870-ad58-edf3facd4c3a">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Gen 1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_a0b7340e-4e4f-5257-96e4-0c2f86b3550c" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergySource.activePower>-0.</cim:EnergySource.activePower>
+    <cim:EnergySource.reactivePower>-0.</cim:EnergySource.reactivePower>
+  </cim:EnergySource>
+  <cim:Terminal rdf:ID="_1710d424-600f-53f0-a069-3b55ce0e4391">
+    <cim:IdentifiedObject.description>Gen 5-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Gen 5-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Gen 5-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_33a03539-3867-5cf1-b985-b16aa1ec5853" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_ebb6bf0b-3921-514a-aeb3-529a2dc7d0a5" />
+  </cim:Terminal>
+  <cim:EnergySource rdf:ID="_33a03539-3867-5cf1-b985-b16aa1ec5853">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Gen 5</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>1</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_16f9cb51-192f-5424-ab25-3d4b869f41ab" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergySource.activePower>-0.</cim:EnergySource.activePower>
+    <cim:EnergySource.reactivePower>-0.</cim:EnergySource.reactivePower>
+  </cim:EnergySource>
+  <cim:Terminal rdf:ID="_bc424d41-b224-5064-aef0-02a1a861edbd">
+    <cim:IdentifiedObject.description>Gen 7-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Gen 7-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Gen 7-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_0794ff4f-ea60-50dd-b4e9-96ad1bf5582b" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_f6849451-1b54-5b7c-bc67-4c766345b423" />
+  </cim:Terminal>
+  <cim:EnergySource rdf:ID="_0794ff4f-ea60-50dd-b4e9-96ad1bf5582b">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Gen 7</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>2</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_e980aef9-9649-5bea-9d85-a113abea1291" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergySource.activePower>-0.</cim:EnergySource.activePower>
+    <cim:EnergySource.reactivePower>-0.</cim:EnergySource.reactivePower>
+  </cim:EnergySource>
+  <cim:Terminal rdf:ID="_9f9f0063-83f1-53ec-ba22-7d28e63e3d45">
+    <cim:IdentifiedObject.description>Gen 9-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Gen 9-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>Gen 9-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_252fe80a-3863-5004-9e48-aece8e3aeab9" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_26a560cd-5d87-5dd7-b588-cb2d8efa50ce" />
+  </cim:Terminal>
+  <cim:EnergySource rdf:ID="_252fe80a-3863-5004-9e48-aece8e3aeab9">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>Gen 9</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>3</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_ede33905-d10e-5161-a8b0-fd2d24f57118" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+    <cim:EnergySource.activePower>-0.</cim:EnergySource.activePower>
+    <cim:EnergySource.reactivePower>-0.</cim:EnergySource.reactivePower>
+  </cim:EnergySource>
+  <cim:Terminal rdf:ID="_125796fd-6209-5e33-897c-7f9bdbae034d">
+    <cim:IdentifiedObject.description>External Grid 0-T1</cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>External Grid 0-T1</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>External Grid 0-T1</entsoe:IdentifiedObject.shortName>
+    <cim:ACDCTerminal.connected>true</cim:ACDCTerminal.connected>
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.phases rdf:resource="http://iec.ch/TC57/2013/CIM-schema-cim16#PhaseCode.ABC" />
+    <cim:Terminal.ConductingEquipment rdf:resource="#_a0b5f592-e69d-50da-a5cb-4885dec8cc61" />
+    <cim:Terminal.TopologicalNode rdf:resource="#_2f314e3b-57eb-5d60-831d-99c69a1c0d81" />
+  </cim:Terminal>
+  <cim:ExternalNetworkInjection rdf:ID="_a0b5f592-e69d-50da-a5cb-4885dec8cc61">
+    <cim:IdentifiedObject.description></cim:IdentifiedObject.description>
+    <cim:IdentifiedObject.name>External Grid 0</cim:IdentifiedObject.name>
+    <entsoe:IdentifiedObject.shortName>0</entsoe:IdentifiedObject.shortName>
+    <cim:Equipment.EquipmentContainer rdf:resource="#_a0b7340e-4e4f-5257-96e4-0c2f86b3550c" />
+    <cim:Equipment.inService>true</cim:Equipment.inService>
+    <gh:ConductingEquipment.zone_container rdf:resource="#_31aee3b6-40c2-532d-994f-58a7f4692950" />
+  </cim:ExternalNetworkInjection>
+  <gh:ZoneContainer rdf:ID="_31aee3b6-40c2-532d-994f-58a7f4692950">
+    <cim:IdentifiedObject.name>1</cim:IdentifiedObject.name>
+  </gh:ZoneContainer>
+</rdf:RDF>
