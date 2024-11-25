@@ -77,8 +77,8 @@ class DpDse:
         self.num_b = 0  # number of branches
         self.u = np.array(
             [])  # list of control inputs in the form [vmag, vph, P, Q] or [vmag, vp, Iinj_mag, Iinj_ph] (TODO: second one needs new measurement type current injection in PyVolt)
-        self.x_est = np.array([])  # list of values of estimated states
-        self.x_pred = np.array([])  # list of values of predicted states
+        self.x_est = dict()  # list of values of estimated states
+        self.x_pred = dict()  # list of values of predicted states
         self.P_est = np.array([])  # estimation covariance
         self.P_pred = np.array([])  # prediction covariance
         self.vg = np.array([])  # array of generator voltage phasors measurement object as tuple (v_mag, v_ph).
@@ -263,6 +263,9 @@ class DpDse:
             self.Act = SS_A
             self.Bct = SS_B
 
+        # map sv index to uuids
+        self.set_sv_idx_uuid()
+
         # extract the control variables into self.vg and self.il or self.sl private variables
         self.separate_inputs()
 
@@ -279,63 +282,7 @@ class DpDse:
             static_se_results, num_iter = nv_powerflow.solve(self.network)
             self.initialize_sv(static_se_results)
 
-    def check_ss_consistency(self):
-        # TODO: This consistency check is only valid for STANDARD model type
-        if self.model_type == DpDse_Model.STANDARD:
-            # Execute power flow analysis
-            results_pf, num_iter = nv_powerflow.solve(self.network)
-            # Print node voltages
-            print("Powerflow converged in " + str(num_iter) + " iterations.\n")
-            pf_node_voltages = []
-            for node in results_pf.nodes:
-                pf_node_voltages.append(node.voltage)
-
-            pf_br_currents = []
-            for branch in results_pf.branches:
-                pf_br_currents.append(branch.current)
-
-            pf_node_currents = []
-            for node in results_pf.nodes:
-                pf_node_currents.append(node.current)
-
-            # initialization of state variables and control inputs
-            get_ES_node_index = [gen_node.index for gen_node in self.network.get_ES_nodes()]
-            get_EC_node_index = [load_node.index for load_node in self.network.get_EC_nodes()]
-            pf_vg = np.array(pf_node_voltages)[np.array(get_ES_node_index)]
-            pf_vl = np.array(pf_node_voltages)[np.array(get_EC_node_index)]
-            pf_il = np.array(pf_node_currents)[np.array(get_EC_node_index)]
-            pf_ibr = np.array(pf_br_currents)
-            # converting line-line voltage to phase voltage: the state-space is built for per phase calculation
-            #x_init_pf_conv = np.concatenate(
-            #    (pf_ibr.real, pf_ibr.imag, pf_vl.real / np.sqrt(3), pf_vl.imag / np.sqrt(3)))
-            #u_init_pf_conv = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), pf_il.real, pf_il.imag))
-            ## negated load currents as current injections from loads are considered
-            #u_init_pf_curr_inj = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), - pf_il.real,
-            #                                     - pf_il.imag))
-
-            x_init_pf_conv = np.concatenate(
-                (pf_ibr.real, pf_ibr.imag, pf_vl.real , pf_vl.imag ))
-            u_init_pf_conv = np.concatenate((pf_vg.real , pf_vg.imag, pf_il.real, pf_il.imag))
-            # negated load currents as current injections from loads are considered
-            u_init_pf_curr_inj = np.concatenate((pf_vg.real , pf_vg.imag , - pf_il.real,
-                                                 - pf_il.imag))
-
-            bu = np.dot(self.Bct, u_init_pf_conv)
-            # solve for x = inv(A)*Bu
-            bu_curr_inj = np.dot(self.Bct, u_init_pf_curr_inj)
-            x_init_from_ss = np.dot(np.linalg.inv(self.Act), -bu_curr_inj.T)
-
-            print("x_init direct pf: ", x_init_pf_conv)
-            print("x_init_state space: ", x_init_from_ss)
-
-            print("Ax: ", np.dot(self.Act, x_init_pf_conv))
-            print("Bu: ", bu)
-
-            print("Ax_state space: ", np.dot(self.Act, x_init_from_ss).T)
-            print("bu_curr_inj: ", bu_curr_inj)
-        else:
-            print("consistency check is implemented only for STANDARD type")
-
+   
     def separate_inputs(self):
         # from the entire measurement_set, extract and separate the measurements which form control variables
         # (vg, il or sl) and rest of the measurements which form observations used for correct step
@@ -378,9 +325,8 @@ class DpDse:
         
         self.z = z
 
-        z_vals = [i.meas_value for i in z.measurements]
-        print("vals in z_new: ", z_vals)
-
+        self.z = self.z.getSortedMeasurementSet() # sort measurements by type
+    
         # Create a dictionary to map uuid to measurement objects
         vmag_dict = {m.element.uuid: m for m in v_mag}
         vph_dict = {m.element.uuid: m for m in v_ph}
@@ -399,17 +345,12 @@ class DpDse:
         if i_inj_mag_dict and i_inj_ph_dict:
             self.il = [(i_inj_mag_dict[x], i_inj_ph_dict[x]) for x in load_uuid]
         
-        # TODO: check for power injections and current injections, the sign needs to be changed or not
 
-    def z_R_pmu(self, cov, index_mag, index_phase):
-        # convert all phasor measurements to rectangular
+    def update_R_pmu(self, cov, index_mag, index_phase):
         # find covariance of phasor measurements in rectangular
         for index, (idx_mag, idx_theta) in enumerate(zip(index_mag, index_phase)):
             value_amp = self.z.measurements[idx_mag].meas_value_act
             value_theta = self.z.measurements[idx_theta].meas_value_act
-            z_cmplx = value_amp * np.exp(1j * value_theta)   
-            self.z.measurements[idx_mag].meas_value_act = np.real(z_cmplx) # replacing magnitude value with real value
-            self.z.measurements[idx_theta].meas_value_act = np.imag(z_cmplx) # replacing phase value with imaginary value
             rot_mat = np.array([[np.cos(value_theta), - value_amp * np.sin(value_theta)],
                                 [np.sin(value_theta), value_amp * np.cos(value_theta)]])
             starting_cov = np.array([[cov[idx_mag], 0], [0, cov[idx_theta]]])
@@ -434,12 +375,12 @@ class DpDse:
             il_ph = np.array([m[1].meas_value_act for m in self.il])
             il_cmplx = phasor_complex(il_mag, il_ph)
             il = np.concatenate((il_cmplx.real, il_cmplx.imag))
-            self.u = np.concatenate((vg, -il)) # TODO: negate as injection current ?
+            self.u = np.concatenate((vg, -il)).reshape((-1, 1)) # TODO: negate as injection current ?
         elif self.model_type == DpDse_Model.INPUT_LOAD_POWER:
             il_calc = self.power_to_current_injection()
-            self.u = np.concatenate((vg, -il_calc)) # TODO: negate as injection current ?
+            self.u = np.concatenate((vg, -il_calc)).reshape((-1, 1)) # TODO: negate as injection current ?
         elif self.model_type == DpDse_Model.AUGMENTED:
-            self.u = np.zeros((self.num_sv, 1))  # no control variables, it is only X_dot = Ax
+            self.u = np.zeros((self.num_sv, 1)).reshape((-1, 1))  # no control variables, it is only X_dot = Ax
 
     def power_to_current_injection(self):
         # compute current injections from power injection measurements and estimated voltages from previous step
@@ -455,6 +396,7 @@ class DpDse:
         il = np.concatenate((il_re, il_im))
         return il
 
+
     def initialize_sv(self, static_se_results):
         # Initialize state variables (in actuals, per phase)
         ib_re = []
@@ -468,56 +410,153 @@ class DpDse:
             if node.topology_node.type == net.BusType.PQ:
                 vl_re.append(node.voltage.real)
                 vl_im.append(node.voltage.imag)
-        self.x_est = np.concatenate((ib_re, ib_im, vl_re/np.sqrt(3), vl_im/np.sqrt(3)))
+        x_est = np.concatenate((ib_re, ib_im, vl_re, vl_im)).reshape((-1, 1))
+        if self.model_type == DpDse_Model.STANDARD: 
+            self.x_est = x_est
+        elif self.model_type == DpDse_Model.LOAD_CURRENT_AUGMENTED:
+            print("Under construction")
+        elif self.model_type == DpDse_Model.AUGMENTED:
+            print("Under construction")
+    
+      
 
     def predict(self):
-        # TODO: yet to check if this works correctly!!
+        # TODO: compute control input covariance matrix!!
+        
         # assemble u vector depending upon the model type into required form
         self.assemble_u()
+
         # predict the states for next time-step
-        # self.x_pred = self.Adt @ self.x_est + self.Bdt @ self.u.T
+        self.x_pred = self.Adt @ self.x_est + self.Bdt @ self.u
+        
+        # compute prediction covariance
         self.P_pred = self.Adt @ self.P_est @ (self.Adt).T
 
-        # TODO: need to convert per unit control inputs to per phase actuals
-        print("next predicted states.....")
-        self.x_pred = self.Adt @ self.x_est + self.Bdt @ self.u.T
-        print(self.x_pred)
-        print("initial states: ", self.x_est)
 
     def correct(self):
-    	# Step 1: build the measurement functions
-        # Step 2: build the Jacobian
-        # Step 3: build R matrix
-        # Step 4: build Kalman gain
-        # Step 5: estimate x_est
-
+        # Step 1: Build measurement covariance matrix
         covar = self.z.getCovarianceMatrixActuals()
         self.R = np.diag(covar)
-        # build h and H for branch current phasors
+        
+        # Step 2: uncertainty propagation from phasor to complex measurements of PMU - updating measurement covariance
         Ib_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_mag)
         Ib_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_phase)
-        self.z_R_pmu(covar, Ib_mag_idx, Ib_phase_idx)
+        Vl_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_mag)
+        Vl_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_phase)
+        self.update_R_pmu(covar, Ib_mag_idx, Ib_phase_idx)
+        self.update_R_pmu(covar, Vl_mag_idx, Vl_phase_idx)
+        
+        # Step 3: get all measurements, phasor values are subsituted by complex
+        z = np.array(self.z.getMeasValuesActuals()).reshape((-1,1))
+        
+        # Step 4: Build measurement functions (h_x) and Jacobians (H)
+        
+        # build h and H for load voltage phasors
+        h1, H1, h2, H2 = self.hx_H_load_voltages_phasor(len(Vl_mag_idx), Vl_mag_idx, Vl_phase_idx)
+        
+        # build h and H for branch current phasors
+        h3, H3, h4, H4 = self.hx_H_branch_current_phasor(len(Ib_mag_idx), Ib_mag_idx, Ib_phase_idx)
 
         # build h and H for branch current magnitude
-
+        
         # build h and H for branch powers
 
         # build h and H for load voltage magnitudes
 
-        # build h and H for load voltage phasors
-
         # build h and H for generator current injections
-
+        
+        # stack Jacobians 
+        H = np.concatenate((H1, H2, H3, H4), axis=0)
+        
         # stack measurement functions
-        # all the sub-matrixes of H calcualted so far are merged in a unique matrix
-        #H = np.concatenate((H1, H2, H3, H4, H5, H6), axis=0)
-        # h(x) sub-vectors are concatenated
-        #y = np.concatenate((h1, h2, h3, h4, h5, h6), axis=0)
-        # stack Jacobians
+        h_x = np.concatenate((h1, h2, h3, h4), axis=0)      
+        
+        # Step 5: compute Kalman gain
+        S = np.linalg.inv(H @ self.P_pred @ H.T + self.R) 
+        K = self.P_pred @ H.T @ S
 
+        # Step 6: calculate state estimates
+        self.x_est = self.x_pred + K @ (z - h_x)
+
+        # Step 7. compute estimation covariance
+        self.P_est = (np.eye(self.num_sv) - K @ H) @ self.P_pred
+        
 
         return 1
+    
+    
+    def hx_H_load_voltages_phasor(self, nvl, index_vre, index_vim):
+        # at every iteration we update h(x) vector where Vl measure are available
+        h1 = np.zeros((nvl, 1))
+        h2 = np.zeros((nvl, 1))
+        # the Jacobian rows where voltage measurements are presents is updated
+        if self.model_type == DpDse_Model.STANDARD:
+            H1 = np.zeros((nvl, self.num_sv))
+            H2 = np.zeros((nvl, self.num_sv))
 
+        for i, (idx_vre, idx_vim) in enumerate(zip(index_vre, index_vim)):
+            # get index of the node
+            node_uuid_re = self.z.measurements[idx_vre].element.uuid
+            node_uuid_im = self.z.measurements[idx_vim].element.uuid
+            if node_uuid_re == node_uuid_im:
+                sv_re_idx = self.vl_re_idx_uuid[node_uuid_re]
+                sv_im_idx = self.vl_im_idx_uuid[node_uuid_re]
+                h1[i][0] = self.x_pred[sv_re_idx]
+                H1[i][sv_re_idx] = 1
+                h2[i][0] = self.x_pred[sv_im_idx]
+                H2[i][sv_im_idx] = 1
+            else:
+                print("Real and imaginary index for load voltage not matching!")
+        return h1, H1, h2, H2
+    
+    def hx_H_branch_current_phasor(self, nib, index_ibre, index_ibim):
+        # at every iteration we update h(x) vector where Ib measure are available
+        h3 = np.zeros((nib, 1))
+        h4 = np.zeros((nib, 1))
+        # the Jacobian rows where branch current measurements are presents is updated
+        if self.model_type == DpDse_Model.STANDARD:
+            H3 = np.zeros((nib, self.num_sv))
+            H4 = np.zeros((nib, self.num_sv))
+
+        for i, (idx_ibre, idx_ibim) in enumerate(zip(index_ibre, index_ibim)):
+            # get index of the node
+            node_uuid_re = self.z.measurements[idx_ibre].element.uuid
+            node_uuid_im = self.z.measurements[idx_ibim].element.uuid
+            if node_uuid_re == node_uuid_im:
+                sv_re_idx = self.ib_re_idx_uuid[node_uuid_re]
+                sv_im_idx = self.ib_im_idx_uuid[node_uuid_re]
+                h3[i][0] = self.x_pred[sv_re_idx]
+                H3[i][sv_re_idx] = 1
+                h4[i][0] = self.x_pred[sv_im_idx]
+                H4[i][sv_im_idx] = 1
+            else:
+                print("Real and imaginary index for branch currents not matching!")
+        return h3, H3, h4, H4
+    
+
+    def set_sv_idx_uuid(self):
+        if self.model_type == DpDse_Model.STANDARD: 
+            self.ib_re_idx_uuid =  {uuid: index for index, uuid in enumerate(self.getBranchUuid())}
+            self.ib_im_idx_uuid =  {uuid: index + self.num_b for index, uuid in enumerate(self.getBranchUuid())}
+            self.vl_re_idx_uuid =  {uuid: index + 2*self.num_b for index, uuid in enumerate(self.getLoadUuid())}
+            self.vl_im_idx_uuid =  {uuid: index + self.num_l + 2*self.num_b for index, uuid in enumerate(self.getLoadUuid())}
+        elif self.model_type == DpDse_Model.LOAD_CURRENT_AUGMENTED:
+            print("Under construction")
+        elif self.model_type == DpDse_Model.AUGMENTED:
+            print("Under construction")
+
+    def getBranchUuid(self):
+        br_uuid = []
+        for branch in self.network.branches:
+            br_uuid.append(branch.uuid)
+        return br_uuid
+    
+    def getLoadUuid(self):
+        l_uuid = []
+        for node in self.network.get_EC_nodes():
+            l_uuid.append(node.uuid)
+        return l_uuid
+    
     def extract_branch_currents_estimation(self):
         return self.x_est[:2 * self.num_b]
 
@@ -529,7 +568,7 @@ class DpDse:
 
     def extract_load_voltages_prediction(self):
         return self.x_pred[2 * self.num_b: 2 * self.num_b + 2 * self.num_l]
-
+    
     def get_num_sv(self):
         return self.num_sv
 
@@ -557,28 +596,60 @@ class DpDse:
     def get_Bdt(self):
         return self.Bdt
 
-    def hx_Ipmu_b_re(self):
-        # measurement function for measurements of branch currents - real
-        return self.extract_branch_currents_prediction()[:self.num_b]
+################################### VALIDATING STATE SPACE CONSTRUCTION #################################
+    def check_ss_consistency(self):
+        # TODO: This consistency check is only valid for STANDARD model type
+        if self.model_type == DpDse_Model.STANDARD:
+            # Execute power flow analysis
+            results_pf, num_iter = nv_powerflow.solve(self.network)
+            # Print node voltages
+            print("Powerflow converged in " + str(num_iter) + " iterations.\n")
+            pf_node_voltages = []
+            for node in results_pf.nodes:
+                pf_node_voltages.append(node.voltage)
 
-    def hx_Ipmu_b_im(self):
-        # measurement function for measurements of branch currents - imag
-        return self.extract_branch_currents_prediction()[self.num_b: 2 * self.num_b]
+            pf_br_currents = []
+            for branch in results_pf.branches:
+                pf_br_currents.append(branch.current)
 
-    def H_Ipmu_b_re(self):
-        # Jacobian for pmu measurements of branch currents
-        print('To be implemented')
+            pf_node_currents = []
+            for node in results_pf.nodes:
+                pf_node_currents.append(node.current)
 
-    def H_Ipmu_b_im(self):
-        # Jacobian for pmu measurements of branch currents
-        print('To be implemented')
+            # initialization of state variables and control inputs
+            get_ES_node_index = [gen_node.index for gen_node in self.network.get_ES_nodes()]
+            get_EC_node_index = [load_node.index for load_node in self.network.get_EC_nodes()]
+            pf_vg = np.array(pf_node_voltages)[np.array(get_ES_node_index)]
+            pf_vl = np.array(pf_node_voltages)[np.array(get_EC_node_index)]
+            pf_il = np.array(pf_node_currents)[np.array(get_EC_node_index)]
+            pf_ibr = np.array(pf_br_currents)
+            # converting line-line voltage to phase voltage: the state-space is built for per phase calculation
+            #x_init_pf_conv = np.concatenate(
+            #    (pf_ibr.real, pf_ibr.imag, pf_vl.real / np.sqrt(3), pf_vl.imag / np.sqrt(3)))
+            #u_init_pf_conv = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), pf_il.real, pf_il.imag))
+            ## negated load currents as current injections from loads are considered
+            #u_init_pf_curr_inj = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), - pf_il.real,
+            #                                     - pf_il.imag))
 
-    def hx_Vpmu(self):
-        # meausrement function for pmu measurements of load voltages
-        print('To be implemented')
+            x_init_pf_conv = np.concatenate(
+                (pf_ibr.real, pf_ibr.imag, pf_vl.real , pf_vl.imag ))
+            u_init_pf_conv = np.concatenate((pf_vg.real , pf_vg.imag, pf_il.real, pf_il.imag))
+            # negated load currents as current injections from loads are considered
+            u_init_pf_curr_inj = np.concatenate((pf_vg.real , pf_vg.imag , - pf_il.real,
+                                                - pf_il.imag))
 
-    def H_Vpmu(self):
-        # Jacobian for pmu measurements of load voltages
-        print('To be implemented')
+            bu = np.dot(self.Bct, u_init_pf_conv)
+            # solve for x = inv(A)*Bu
+            bu_curr_inj = np.dot(self.Bct, u_init_pf_curr_inj)
+            x_init_from_ss = np.dot(np.linalg.inv(self.Act), -bu_curr_inj.T)
 
-    
+            print("x_init direct pf: ", x_init_pf_conv)
+            print("x_init_state space: ", x_init_from_ss)
+
+            print("Ax: ", np.dot(self.Act, x_init_pf_conv))
+            print("Bu: ", bu)
+
+            print("Ax_state space: ", np.dot(self.Act, x_init_from_ss).T)
+            print("bu_curr_inj: ", bu_curr_inj)
+        else:
+            print("consistency check is implemented only for STANDARD type")
