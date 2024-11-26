@@ -17,7 +17,6 @@ class DpDse_Model(Enum):
     STANDARD = 1
     AUGMENTED = 2
     INPUT_LOAD_POWER = 3
-    LOAD_CURRENT_AUGMENTED = 4
 
 
 class Line_Type(Enum):
@@ -75,17 +74,14 @@ class DpDse:
         self.num_g = 0  # number of generator nodes
         self.num_l = 0  # number of load nodes; including zero injection nodes
         self.num_b = 0  # number of branches
-        self.u = np.array(
-            [])  # list of control inputs in the form [vmag, vph, P, Q] or [vmag, vp, Iinj_mag, Iinj_ph] (TODO: second one needs new measurement type current injection in PyVolt)
-        self.x_est = dict()  # list of values of estimated states
-        self.x_pred = dict()  # list of values of predicted states
+        self.u = measurement.MeasurementSet()  # list of control inputs in the form [vmag, vph, P, Q] or [vmag, vp, Iinj_mag, Iinj_ph] (TODO: second one needs new measurement type current injection in PyVolt)
+        self.x_est = np.array([])  # list of values of estimated states
+        self.x_pred = np.array([])  # list of values of predicted states
         self.P_est = np.array([])  # estimation covariance
         self.P_pred = np.array([])  # prediction covariance
-        self.vg = np.array([])  # array of generator voltage phasors measurement object as tuple (v_mag, v_ph).
-        self.sl = np.array([])  # array of load power injection measurement object as tuple (p, q)
-        self.il = np.array([])  # array of load current injection measurement object as tuple (il_mag, il_ph)
-        self.z = np.array([])  # array of measurement objects which will be used for correction step
+        self.z = measurement.MeasurementSet()  # array of measurement objects which will be used for correction step
         self.R = np.empty((0, 0)) # measurement covariance matrix
+        self.V = np.empty((0, 0)) # control input covariance matrix
 
     def initialize_dse(self):
         fo = 50  # TODO: where can we get network nominal frequency information
@@ -266,9 +262,6 @@ class DpDse:
         # map sv index to uuids
         self.set_sv_idx_uuid()
 
-        # extract the control variables into self.vg and self.il or self.sl private variables
-        self.separate_inputs()
-
         # initialize initial estimation covariance
         self.P_est = 1e-10 * np.ones((self.num_sv, self.num_sv))
         
@@ -281,121 +274,112 @@ class DpDse:
             print("PyVolt SE threw error! State variables are initialized from power flow results!")
             static_se_results, num_iter = nv_powerflow.solve(self.network)
             self.initialize_sv(static_se_results)
+        
+        # extract the control variables and measurements separately
+        self.separate_inputs()
 
-   
     def separate_inputs(self):
         # from the entire measurement_set, extract and separate the measurements which form control variables
         # (vg, il or sl) and rest of the measurements which form observations used for correct step
-
-        v_mag = []  # list to extract generator voltage magnitude measurement objects
-        v_ph = []  # list to extract generator voltage phase measurement objects
-        p = []  # list to extract load real power injection measurement objects
-        q = []  # list to extract load reactive power injection measurement objects
-        i_mag = []  # list to extract load current injection magnitude measurement objects
-        i_ph = []  # list to extract load current injection phase measurement objects
-        z = []  # list of rest of the measurement objects for use in correction step
 
         gen_uuid = [gen_node.uuid for gen_node in self.network.get_ES_nodes()]
         load_uuid = [load_node.uuid for load_node in self.network.get_EC_nodes()]
 
         # first extract all measurements of a node of type voltage and power injections of generator nodes and load
         # nodes respectively, the remaining goes into z list
+        gen_input_type = [measurement.MeasType.Vpmu_mag, measurement.MeasType.Vpmu_phase]
+        load_power_input_type = [measurement.MeasType.Sinj_real, measurement.MeasType.Sinj_imag]
+        load_current_input_type = [measurement.MeasType.Ipmu_inj_mag, measurement.MeasType.Ipmu_inj_phase]
+
         for meas in self.measurement_set.measurements:
             if meas.element_type == measurement.ElemType.Node:
-                if meas.meas_type == measurement.MeasType.Vpmu_mag and meas.element.uuid in gen_uuid:
-                    v_mag.append(meas)
-                if meas.meas_type == measurement.MeasType.Vpmu_phase and meas.element.uuid in gen_uuid:
-                    v_ph.append(meas)
-                if meas.meas_type == measurement.MeasType.Sinj_real and meas.element.uuid in load_uuid:
-                    p.append(meas)
-                if meas.meas_type == measurement.MeasType.Sinj_imag and meas.element.uuid in load_uuid:
-                    q.append(meas)
-                if meas.meas_type == measurement.MeasType.Ipmu_inj_mag and meas.element.uuid in load_uuid:
-                    i_mag.append(meas)
-                if meas.meas_type == measurement.MeasType.Ipmu_inj_phase and meas.element.uuid in load_uuid:
-                    i_ph.append(meas)
+                if meas.meas_type in gen_input_type and meas.element.uuid in gen_uuid:
+                    self.u.measurements.append(meas)
+                if meas.meas_type in load_power_input_type and meas.element.uuid in load_uuid:
+                    meas.meas_value_act = -meas.meas_value_act # negating to make it injection convention
+                    meas.meas_value = -meas.meas_value
+                    self.u.measurements.append(meas)
+                if meas.meas_type in load_current_input_type and meas.element.uuid in load_uuid:
+                    if meas.meas_type == measurement.MeasType.Ipmu_inj_phase:
+                        meas.meas_value_act = meas.meas_value_act + np.pi # negating to make it injection convention
+                        meas.meas_value = meas.meas_value + np.pi
+                    self.u.measurements.append(meas)
                     
-        all_u = v_mag + v_ph + p + q + i_mag + i_ph
-        
-        z = measurement.MeasurementSet()
+        # sort control inputs in required order 
+        sorted_u = measurement.MeasurementSet()
 
-        for item in self.measurement_set.measurements:
-            if item not in all_u:
-               z.measurements.append(item)
-        
-        self.z = z
-
-        self.z = self.z.getSortedMeasurementSet() # sort measurements by type
+        # Sort measurements  in the order required by the SE algorithm
+        # Required order: Vpmu_mag, Vpmu_phase, Sinj_real, Sinj_imag, Ipmu_inj_mag, Ipmu_inj_phase
+        for type_meas in [measurement.MeasType.Vpmu_mag, measurement.MeasType.Vpmu_phase, measurement.MeasType.Sinj_real, measurement.MeasType.Sinj_imag, measurement.MeasType.Ipmu_inj_mag, measurement.MeasType.Ipmu_inj_phase]:
+            sorted_u.measurements += self.u.getMeasurementsOfType(type_meas)
+        self.u = sorted_u
     
-        # Create a dictionary to map uuid to measurement objects
-        vmag_dict = {m.element.uuid: m for m in v_mag}
-        vph_dict = {m.element.uuid: m for m in v_ph}
-        p_dict = {m.element.uuid: m for m in p}
-        q_dict = {m.element.uuid: m for m in q}
-        i_inj_mag_dict = {m.element.uuid: m for m in i_mag}
-        i_inj_ph_dict = {m.element.uuid: m for m in i_ph}
-
-        # Rearrange gen voltages and according to the order of generator order (using uuid), same for load powers
-        # list of control variables - (voltage magnitude, voltage phase angles),
-        #                             (load real power and load imaginary power injections)
-        if vmag_dict and vph_dict:
-            self.vg = [(vmag_dict[x], vph_dict[x]) for x in gen_uuid]
-        if p_dict and q_dict: # here it is assumed that real and reactive power are obtained together
-            self.sl = [(p_dict[x], q_dict[x]) for x in load_uuid]
-        if i_inj_mag_dict and i_inj_ph_dict:
-            self.il = [(i_inj_mag_dict[x], i_inj_ph_dict[x]) for x in load_uuid]
+        # extract z
+        for item in self.measurement_set.measurements:
+            if item not in self.u.measurements:
+               self.z.measurements.append(item)
+        
+        # sort z into required order
+        self.z = self.z.getSortedMeasurementSet() # sort measurements by type
         
 
-    def update_R_pmu(self, cov, index_mag, index_phase):
+    def update_covariance_pmu(self, cov, index_mag, index_phase, u_z_type="z"):
         # find covariance of phasor measurements in rectangular
         for index, (idx_mag, idx_theta) in enumerate(zip(index_mag, index_phase)):
-            value_amp = self.z.measurements[idx_mag].meas_value_act
-            value_theta = self.z.measurements[idx_theta].meas_value_act
+            if u_z_type == 'z':
+                value_amp = self.z.measurements[idx_mag].meas_value_act
+                value_theta = self.z.measurements[idx_theta].meas_value_act
+            elif u_z_type == 'u':
+                value_amp = self.u.measurements[idx_mag].meas_value_act
+                value_theta = self.u.measurements[idx_theta].meas_value_act
             rot_mat = np.array([[np.cos(value_theta), - value_amp * np.sin(value_theta)],
                                 [np.sin(value_theta), value_amp * np.cos(value_theta)]])
             starting_cov = np.array([[cov[idx_mag], 0], [0, cov[idx_theta]]])
             final_cov = np.inner(rot_mat, np.inner(starting_cov, rot_mat.transpose()))
-            self.R[idx_mag][idx_mag] = final_cov[0][0]
-            self.R[idx_theta][idx_theta] = final_cov[1][1]
-            self.R[idx_mag][idx_theta] = final_cov[0][1]
-            self.R[idx_theta][idx_mag] = final_cov[1][0]
-    
+            if u_z_type == 'z':
+                self.R[idx_mag][idx_mag] = final_cov[0][0]
+                self.R[idx_theta][idx_theta] = final_cov[1][1]
+                self.R[idx_mag][idx_theta] = final_cov[0][1]
+                self.R[idx_theta][idx_mag] = final_cov[1][0]
+            elif u_z_type == 'u':
+                self.V[idx_mag][idx_mag] = final_cov[0][0]
+                self.V[idx_theta][idx_theta] = final_cov[1][1]
+                self.V[idx_mag][idx_theta] = final_cov[0][1]
+                self.V[idx_theta][idx_mag] = final_cov[1][0]
+
     def assemble_u(self):
         # this function constructs u vector depending upon the kind of model in the required form
         # if STANDARD: [vg_re, vg_im, il_re, il_im]
         # if INPUT_LOAD_POWER: [vg_re, vg_im, il_calc_re, il_calc_im]
         # if AUGMENTED: [0.....0]
         #TODO: yet to check if this is working correctly!!
-        vg_mag = np.array([m[0].meas_value_act for m in self.vg]) # It is assumed that Vg is a phasor
-        vg_ph = np.array([m[1].meas_value_act for m in self.vg])
-        vg_cmplx = phasor_complex(vg_mag, vg_ph)
-        vg = np.concatenate((vg_cmplx.real, vg_cmplx.imag))
+        
+        u = []
         if self.model_type == DpDse_Model.STANDARD:
-            il_mag = np.array([m[0].meas_value_act for m in self.il])
-            il_ph = np.array([m[1].meas_value_act for m in self.il])
-            il_cmplx = phasor_complex(il_mag, il_ph)
-            il = np.concatenate((il_cmplx.real, il_cmplx.imag))
-            self.u = np.concatenate((vg, -il)).reshape((-1, 1)) # TODO: negate as injection current ?
+            u = self.u.getMeasValuesActuals().reshape((-1, 1))
         elif self.model_type == DpDse_Model.INPUT_LOAD_POWER:
-            il_calc = self.power_to_current_injection()
-            self.u = np.concatenate((vg, -il_calc)).reshape((-1, 1)) # TODO: negate as injection current ?
+            sinj_real_idx = self.u.getIndexOfMeasurements(measurement.MeasType.Sinj_real)
+            sinj_imag_idx = self.u.getIndexOfMeasurements(measurement.MeasType.Sinj_imag)
+            for index, (idx_re, idx_im) in enumerate(zip(sinj_real_idx, sinj_imag_idx)):
+                p = self.u.measurements[idx_re].meas_value_act
+                q = self.u.measurements[idx_im].meas_value_act
+                if self.u.measurements[idx_re].element.uuid != self.u.measurements[idx_im].element.uuid:
+                    print("Real and reactive power do not belong to same element!")
+                else:
+                    uid = self.u.measurements[idx_re].element.uuid
+                    v_est_re = self.x_est[self.vl_re_idx_uuid[uid]]
+                    v_est_im = self.x_est[self.vl_im_idx_uuid[uid]]
+                    v_sq = v_est_re * v_est_re + v_est_im * v_est_im
+                    il_re = (v_est_re * p + v_est_im * q) / v_sq
+                    il_im = (v_est_im * p - v_est_re * q) / v_sq
+                    #print(f"uuid: {uid}, p: {p}, q: {q}, il_re: {il_re}, il_im: {il_im}")
+                    self.u.measurements[idx_re].meas_value_act = il_re
+                    self.u.measurements[idx_im].meas_value_act = il_im
+            u = self.u.getMeasValuesActuals().reshape((-1, 1))
         elif self.model_type == DpDse_Model.AUGMENTED:
-            self.u = np.zeros((self.num_sv, 1)).reshape((-1, 1))  # no control variables, it is only X_dot = Ax
-
-    def power_to_current_injection(self):
-        # compute current injections from power injection measurements and estimated voltages from previous step
-        #TODO: need to check if this function works!
-        v_est = self.extract_load_voltages_estimation()
-        v_est_re = v_est[:self.num_l]
-        v_est_im = v_est[self.num_l:]
-        p_inj = np.array([m[0].meas_value for m in self.sl])
-        q_inj = np.array([m[1].meas_value for m in self.sl])
-        v_sq = v_est_re * v_est_re + v_est_im * v_est_im
-        il_re = (v_est_re * p_inj + v_est_im * q_inj) / v_sq
-        il_im = (v_est_im * p_inj - v_est_re * q_inj) / v_sq
-        il = np.concatenate((il_re, il_im))
-        return il
-
+            u = np.zeros((self.num_sv, 1)).reshape((-1, 1))  # no control variables, it is only X_dot = Ax
+        return u 
+    
 
     def initialize_sv(self, static_se_results):
         # Initialize state variables (in actuals, per phase)
@@ -403,6 +387,8 @@ class DpDse:
         ib_im = []
         vl_re = []
         vl_im = []
+        il_re = []
+        il_im = []
         for br in static_se_results.branches:
             ib_re.append(br.current.real)
             ib_im.append(br.current.imag)
@@ -410,13 +396,15 @@ class DpDse:
             if node.topology_node.type == net.BusType.PQ:
                 vl_re.append(node.voltage.real)
                 vl_im.append(node.voltage.imag)
+                il_re.append(-node.current.real)
+                il_im.append(-node.current.imag)
         x_est = np.concatenate((ib_re, ib_im, vl_re, vl_im)).reshape((-1, 1))
         if self.model_type == DpDse_Model.STANDARD: 
             self.x_est = x_est
-        elif self.model_type == DpDse_Model.LOAD_CURRENT_AUGMENTED:
-            print("Under construction")
+        elif self.model_type == DpDse_Model.INPUT_LOAD_POWER:
+            self.x_est = np.concatenate((ib_re, ib_im, vl_re, vl_im, il_re, il_im)).reshape((-1, 1))
         elif self.model_type == DpDse_Model.AUGMENTED:
-            print("Under construction")
+            print("Initilize SV for DpDse_Model.AUGMENTED Under construction")
     
       
 
@@ -424,27 +412,37 @@ class DpDse:
         # TODO: compute control input covariance matrix!!
         
         # assemble u vector depending upon the model type into required form
-        self.assemble_u()
+        u = self.assemble_u()
+
+        u_covar = self.u.getCovarianceMatrixActuals()
+        self.V = np.diag(u_covar)
+        
+        # Step 2: uncertainty propagation from phasor to complex measurements of PMU - updating measurement covariance
+        u_Ib_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_mag)
+        u_Ib_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_phase)
+        u_Vl_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_mag)
+        u_Vl_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_phase)
+        self.update_covariance_pmu(u_covar, u_Ib_mag_idx, u_Ib_phase_idx, u_z_type='u')
+        self.update_covariance_pmu(u_covar, u_Vl_mag_idx, u_Vl_phase_idx, u_z_type='u')
 
         # predict the states for next time-step
-        self.x_pred = self.Adt @ self.x_est + self.Bdt @ self.u
+        self.x_pred = self.Adt @ self.x_est + self.Bdt @ u
         
         # compute prediction covariance
-        self.P_pred = self.Adt @ self.P_est @ (self.Adt).T
-
+        self.P_pred = self.Adt @ self.P_est @ (self.Adt).T + self.Bdt @ self.V @ (self.Bdt).T
 
     def correct(self):
         # Step 1: Build measurement covariance matrix
-        covar = self.z.getCovarianceMatrixActuals()
-        self.R = np.diag(covar)
+        z_covar = self.z.getCovarianceMatrixActuals()
+        self.R = np.diag(z_covar)
         
         # Step 2: uncertainty propagation from phasor to complex measurements of PMU - updating measurement covariance
-        Ib_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_mag)
-        Ib_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_phase)
-        Vl_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_mag)
-        Vl_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_phase)
-        self.update_R_pmu(covar, Ib_mag_idx, Ib_phase_idx)
-        self.update_R_pmu(covar, Vl_mag_idx, Vl_phase_idx)
+        z_Ib_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_mag)
+        z_Ib_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_phase)
+        z_Vl_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_mag)
+        z_Vl_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_phase)
+        self.update_covariance_pmu(z_covar, z_Ib_mag_idx, z_Ib_phase_idx, u_z_type='z')
+        self.update_covariance_pmu(z_covar, z_Vl_mag_idx, z_Vl_phase_idx, u_z_type='z')
         
         # Step 3: get all measurements, phasor values are subsituted by complex
         z = np.array(self.z.getMeasValuesActuals()).reshape((-1,1))
@@ -452,10 +450,10 @@ class DpDse:
         # Step 4: Build measurement functions (h_x) and Jacobians (H)
         
         # build h and H for load voltage phasors
-        h1, H1, h2, H2 = self.hx_H_load_voltages_phasor(len(Vl_mag_idx), Vl_mag_idx, Vl_phase_idx)
+        h1, H1, h2, H2 = self.hx_H_load_voltages_phasor(len(z_Vl_mag_idx), z_Vl_mag_idx, z_Vl_phase_idx)
         
         # build h and H for branch current phasors
-        h3, H3, h4, H4 = self.hx_H_branch_current_phasor(len(Ib_mag_idx), Ib_mag_idx, Ib_phase_idx)
+        h3, H3, h4, H4 = self.hx_H_branch_current_phasor(len(z_Ib_mag_idx), z_Ib_mag_idx, z_Ib_phase_idx)
 
         # build h and H for branch current magnitude
         
@@ -481,7 +479,6 @@ class DpDse:
         # Step 7. compute estimation covariance
         self.P_est = (np.eye(self.num_sv) - K @ H) @ self.P_pred
         
-
         return 1
     
     
@@ -506,7 +503,7 @@ class DpDse:
                 h2[i][0] = self.x_pred[sv_im_idx]
                 H2[i][sv_im_idx] = 1
             else:
-                print("Real and imaginary index for load voltage not matching!")
+                print("Real and imaginary for load voltage do not belong to same element!")
         return h1, H1, h2, H2
     
     def hx_H_branch_current_phasor(self, nib, index_ibre, index_ibim):
@@ -530,7 +527,7 @@ class DpDse:
                 h4[i][0] = self.x_pred[sv_im_idx]
                 H4[i][sv_im_idx] = 1
             else:
-                print("Real and imaginary index for branch currents not matching!")
+                print("Real and imaginary for branch currents do not belong to same element!")
         return h3, H3, h4, H4
     
 
@@ -540,10 +537,14 @@ class DpDse:
             self.ib_im_idx_uuid =  {uuid: index + self.num_b for index, uuid in enumerate(self.getBranchUuid())}
             self.vl_re_idx_uuid =  {uuid: index + 2*self.num_b for index, uuid in enumerate(self.getLoadUuid())}
             self.vl_im_idx_uuid =  {uuid: index + self.num_l + 2*self.num_b for index, uuid in enumerate(self.getLoadUuid())}
-        elif self.model_type == DpDse_Model.LOAD_CURRENT_AUGMENTED:
-            print("Under construction")
+        elif self.model_type == DpDse_Model.INPUT_LOAD_POWER:
+            self.ib_re_idx_uuid =  {uuid: index for index, uuid in enumerate(self.getBranchUuid())}
+            self.ib_im_idx_uuid =  {uuid: index + self.num_b for index, uuid in enumerate(self.getBranchUuid())}
+            self.vl_re_idx_uuid =  {uuid: index + 2*self.num_b for index, uuid in enumerate(self.getLoadUuid())}
+            self.vl_im_idx_uuid =  {uuid: index + self.num_l + 2*self.num_b for index, uuid in enumerate(self.getLoadUuid())}
         elif self.model_type == DpDse_Model.AUGMENTED:
             print("Under construction")
+    
 
     def getBranchUuid(self):
         br_uuid = []
@@ -556,6 +557,12 @@ class DpDse:
         for node in self.network.get_EC_nodes():
             l_uuid.append(node.uuid)
         return l_uuid
+
+    def getGenUuid(self):
+        g_uuid = []
+        for node in self.network.get_ES_nodes():
+            g_uuid.append(node.uuid)
+        return g_uuid
     
     def extract_branch_currents_estimation(self):
         return self.x_est[:2 * self.num_b]
