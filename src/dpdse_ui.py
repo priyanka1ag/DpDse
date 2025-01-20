@@ -403,6 +403,12 @@ class DpDse:
         all_u = v_mag + v_ph + p + q + i_mag + i_ph
         z = [item for item in self.measurement_set.measurements if item not in all_u]
 
+        for item in self.measurement_set.measurements:
+            if item not in all_u:
+               z.measurements.append(item)
+        
+        self.z = z
+
         z_vals = [i.meas_value for i in z]
         print("vals in z_new: ", z_vals)
 
@@ -423,9 +429,25 @@ class DpDse:
             self.sl = [(p_dict[x.uuid], q_dict[x.uuid]) for x in self.critical_nodes] # only critical loads injection for known control inputs
         if i_inj_mag_dict and i_inj_ph_dict:
             self.il = [(i_inj_mag_dict[x.uuid], i_inj_ph_dict[x.uuid]) for x in self.critical_nodes] # only critical loads injection for known control inputs
-        self.z = np.array(z)
 
         # TODO: check for power injections and current injections, the sign needs to be changed or not
+    
+    def update_R_pmu(self, cov, index_mag, index_phase):
+        # find covariance of phasor measurements in rectangular
+        for index, (idx_mag, idx_theta) in enumerate(zip(index_mag, index_phase)):
+            value_amp = self.z.measurements[idx_mag].meas_value_act
+            value_theta = self.z.measurements[idx_theta].meas_value_act
+            #z_cmplx = value_amp * np.exp(1j * value_theta)   
+            #self.z.measurements[idx_mag].meas_value_act = np.real(z_cmplx) # replacing magnitude value with real value
+            #self.z.measurements[idx_theta].meas_value_act = np.imag(z_cmplx) # replacing phase value with imaginary value
+            rot_mat = np.array([[np.cos(value_theta), - value_amp * np.sin(value_theta)],
+                                [np.sin(value_theta), value_amp * np.cos(value_theta)]])
+            starting_cov = np.array([[cov[idx_mag], 0], [0, cov[idx_theta]]])
+            final_cov = np.inner(rot_mat, np.inner(starting_cov, rot_mat.transpose()))
+            self.R[idx_mag][idx_mag] = final_cov[0][0]
+            self.R[idx_theta][idx_theta] = final_cov[1][1]
+            self.R[idx_mag][idx_theta] = final_cov[0][1]
+            self.R[idx_theta][idx_mag] = final_cov[1][0]
 
     def assemble_inputs(self):
         # this function constructs u vector depending upon the kind of model in the required form
@@ -492,18 +514,24 @@ class DpDse:
 
     
     def correct(self):
-        # Step 1: look if new measurements received
-        # Step 2: update the measurements vector
-        # Step 3: build the measurement functions
-        # Step 4: build the Jacobian
-        # Step 5: build F matrix
-        # Step 6: build R matrix
-        # Step 7: build R_d matrix
-        # Step 8: build M matrix
-        # Step 9: build d vector of unknown inputs
-        # Step 10: update prediction x_pred
-        # Step 11: build Kalman gain
-        # Step 12: estimate x_est
+        # Step -1: look if new measurements received
+        # Step -2: update the measurements vector
+        # Step 1: build the measurement functions
+        # Step 2: build the Jacobian
+        # Step 3: build F matrix
+        # Step 4: build R matrix
+        # Step 5: build R_d matrix
+        # Step 6: build M matrix
+        # Step 7: build d vector of unknown inputs
+        # Step 8: update prediction x_pred
+        # Step 9: build Kalman gain
+        # Step 10: estimate x_est
+        covar = self.z.getCovarianceMatrixActuals()
+        self.R = np.diag(covar)
+        # build h and H for branch current phasors
+        Ib_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_mag)
+        Ib_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_phase)
+        self.z_R_pmu(covar, Ib_mag_idx, Ib_phase_idx)
 
         
         return 1

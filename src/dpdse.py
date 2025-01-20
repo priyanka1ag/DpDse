@@ -5,6 +5,7 @@ from pyvolt import network as net
 from pyvolt import nv_powerflow
 from pyvolt import nv_state_estimator
 import scipy as spy
+import observability as ob
 
 
 # TODO: Only centralized implementation available so far! Feeder selection should be implemented here. Because it affects the state space formation
@@ -301,8 +302,8 @@ class DpDse:
                     self.u.measurements.append(meas)
                 if meas.meas_type in load_current_input_type and meas.element.uuid in load_uuid:
                     if meas.meas_type == measurement.MeasType.Ipmu_inj_phase:
-                        meas.meas_value_act = meas.meas_value_act + np.pi # negating to make it injection convention
-                        meas.meas_value = meas.meas_value + np.pi
+                        meas.meas_value_act = meas.meas_value_act - np.pi # negating to make it injection convention
+                        meas.meas_value = meas.meas_value - np.pi
                     self.u.measurements.append(meas)
                     
         # sort control inputs in required order 
@@ -410,7 +411,7 @@ class DpDse:
 
     def predict(self):
         # TODO: compute control input covariance matrix!!
-        
+        print("---Predict---")
         # assemble u vector depending upon the model type into required form
         u = self.assemble_u()
 
@@ -418,20 +419,23 @@ class DpDse:
         self.V = np.diag(u_covar)
         
         # Step 2: uncertainty propagation from phasor to complex measurements of PMU - updating measurement covariance
-        u_Ib_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_mag)
-        u_Ib_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Ipmu_phase)
-        u_Vl_mag_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_mag)
-        u_Vl_phase_idx = self.z.getIndexOfMeasurements(measurement.MeasType.Vpmu_phase)
-        self.update_covariance_pmu(u_covar, u_Ib_mag_idx, u_Ib_phase_idx, u_z_type='u')
+        u_Il_mag_idx = self.u.getIndexOfMeasurements(measurement.MeasType.Ipmu_mag)
+        u_Il_phase_idx = self.u.getIndexOfMeasurements(measurement.MeasType.Ipmu_phase)
+        u_Vl_mag_idx = self.u.getIndexOfMeasurements(measurement.MeasType.Vpmu_mag)
+        u_Vl_phase_idx = self.u.getIndexOfMeasurements(measurement.MeasType.Vpmu_phase)
+        self.update_covariance_pmu(u_covar, u_Il_mag_idx, u_Il_phase_idx, u_z_type='u')
         self.update_covariance_pmu(u_covar, u_Vl_mag_idx, u_Vl_phase_idx, u_z_type='u')
 
         # predict the states for next time-step
         self.x_pred = self.Adt @ self.x_est + self.Bdt @ u
-        
+
         # compute prediction covariance
         self.P_pred = self.Adt @ self.P_est @ (self.Adt).T + self.Bdt @ self.V @ (self.Bdt).T
 
     def correct(self):
+        #print("estimated: ", self.x_est)
+        print("----------------Correct----------------")
+
         # Step 1: Build measurement covariance matrix
         z_covar = self.z.getCovarianceMatrixActuals()
         self.R = np.diag(z_covar)
@@ -464,8 +468,26 @@ class DpDse:
         # build h and H for generator current injections
         
         # stack Jacobians 
-        H = np.concatenate((H1, H2, H3, H4), axis=0)
-        
+        H = np.concatenate((H3, H4, H1, H2), axis=0)
+        #print("size of H: ", np.shape(H))
+
+        #is_ob, O = ob.is_system_observable(self.Adt, H)
+        #is_detect = ob.is_system_detectable(self.Adt, H, system_type='Discrete')
+        #print("is observable: ", is_ob)
+        #U, S, Vt = np.linalg.svd(O)
+        #tol = max(O.shape) * np.finfo(float).eps * max(S)
+        # Count the number of singular values greater than the tolerance
+        #rank_of_O = np.sum(S > 1e-10)
+        #print("Tolerance calculated: ", tol)
+        #print("Rank using SVD: ", rank_of_O)
+
+        #print("Rank using matrix_rank: ", np.linalg.matrix_rank(O))
+        #print("rank of O: ", np.linalg.matrix_rank(O, tol=1e-10))
+        #print("is detectable: ", is_detect)
+        #print("add meas for sv: ", ob.recommended_sv_measurements(self.Adt, H))
+        #print("Observability degree: ", ob.observability_degree(self.Adt, H))
+
+       
         # stack measurement functions
         h_x = np.concatenate((h1, h2, h3, h4), axis=0)      
         
@@ -473,12 +495,14 @@ class DpDse:
         S = np.linalg.inv(H @ self.P_pred @ H.T + self.R) 
         K = self.P_pred @ H.T @ S
 
+        #print("increment: ", K @ (z - h_x))
         # Step 6: calculate state estimates
         self.x_est = self.x_pred + K @ (z - h_x)
 
         # Step 7. compute estimation covariance
         self.P_est = (np.eye(self.num_sv) - K @ H) @ self.P_pred
         
+        #print("estimated +1: ", self.x_est)
         return 1
     
     
@@ -602,6 +626,12 @@ class DpDse:
 
     def get_Bdt(self):
         return self.Bdt
+    
+    def get_meas_z(self):
+        return self.z
+    
+    def get_meas_u(self):
+        return self.u
 
 ################################### VALIDATING STATE SPACE CONSTRUCTION #################################
     def check_ss_consistency(self):
@@ -638,6 +668,8 @@ class DpDse:
             #u_init_pf_curr_inj = np.concatenate((pf_vg.real / np.sqrt(3), pf_vg.imag / np.sqrt(3), - pf_il.real,
             #                                     - pf_il.imag))
 
+            print("injected currents: ", pf_il)
+            print("mag and angles: ", abs((-1)*pf_il), np.angle((-1)*pf_il))
             x_init_pf_conv = np.concatenate(
                 (pf_ibr.real, pf_ibr.imag, pf_vl.real , pf_vl.imag ))
             u_init_pf_conv = np.concatenate((pf_vg.real , pf_vg.imag, pf_il.real, pf_il.imag))
