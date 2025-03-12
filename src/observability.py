@@ -4,7 +4,7 @@ from sklearn.preprocessing import normalize
 
 
 
-def is_system_observable(A, H, domain="TD"):
+def is_system_observable(A, H):
     is_observable = False
     O = H
     n = A.shape[0]
@@ -15,7 +15,7 @@ def is_system_observable(A, H, domain="TD"):
         is_observable = True
     return is_observable, O
 
-def recommended_sv_measurements(A, H, domain="TD"):
+def recommended_sv_measurements(A, H):
     # this function returns the index of state-variable (in X) related to which measurements should be added
     is_observable, O = is_system_observable(A, H)
     # normalize observability matrix
@@ -34,7 +34,7 @@ def recommended_sv_measurements(A, H, domain="TD"):
 
     return max_eigenvector_index
 
-def observability_degree(A, H, system_type='Continuous'):
+def observability_degree(A, H):
     is_observable, O = is_system_observable(A, H)
     On = normalize(np.asarray(O.T), axis=1, norm='l1')
     # OOt

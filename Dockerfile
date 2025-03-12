@@ -25,10 +25,11 @@ RUN pip3 install \
     nbformat \
     openpyxl \
     scipy \
-    matplotlib\
+    #matplotlib\
     pandas\
     poetry\
-    paho-mqtt
+    paho-mqtt\
+    scikit-learn
 
 EXPOSE 8888
 
@@ -40,8 +41,17 @@ RUN cd /git/cimpy/ && \
     python3 -m pip install -e .
 
 # install pyvolt
-RUN cd /git && git clone https://github.com/martinmoraga/pyvolt.git
-RUN cd /git/pyvolt/ && python3 -m pip install -e .
+RUN cd /git && git clone https://github.com/martinmoraga/pyvolt.git   
+RUN cd /git/pyvolt/ && python3 -m pip install -e . 
+
+# install platform
+RUN cd /git && git clone https://github.com/SEGuRo-Projekt/Platform.git
+RUN cd /git/Platform/ && python3 -m pip install -e .
+
+# environment variable
+env TLS_CACERT /DSE/keys/ca.crt
+env TLS_CERT /DSE/keys/admin.crt
+env TLS_KEY /DSE/keys/admin.key
 
 # add DSE folder
 COPY . /DSE/
