@@ -144,7 +144,7 @@ class DpDse:
         A32 = np.zeros((num_load, num_branch))
         if self.line_type == Line_Type.PI and load_resistance is True:
             A33 = -np.linalg.inv(np.dot(cables_C, R_L))
-        elif load_resistance is False:
+        elif self.line_type == Line_Type.PI and load_resistance is False:
             A33 = np.zeros((num_load, num_load))  # when load resistance is not to be considered TODO: Is this correct? Even for PI model when load resis is not there? 
         elif self.line_type == Line_Type.RL: # TODO: is this correct for both with and without load resis? If load resistance is there, shouldnt it change? 
             A33 = -(1/self.tc)*np.eye(num_load) 
@@ -164,7 +164,7 @@ class DpDse:
             A43 = np.zeros((num_load, num_load))  # when shunt capacitance is not to be considered
         if self.line_type == Line_Type.PI and load_resistance is True:
             A44 = -np.linalg.inv(np.dot(cables_C, R_L))
-        elif load_resistance is False:
+        elif self.line_type == Line_Type.PI and load_resistance is False:
             A44 = np.zeros((num_load, num_load))  # when load resistance is not to be considered
         elif self.line_type == Line_Type.RL:
             A44 = -(1/self.tc)*np.eye(num_load)
@@ -241,10 +241,15 @@ class DpDse:
         # initialize control input measurement error
         self.V = 1e-10 * np.eye(self.num_u)
 
+        self.assemble_u()
+
         # check observability and detectability of available measurement configuration
         _, H = self.build_hx_H() 
         is_ob, O = ob.is_system_observable(self.Adt, H)
         is_detect = ob.is_system_detectable(self.Adt, H, system_type='Discrete')
+        v = ob.recommended_sv_measurements(self.Adt, H)
+        print("Is system observable: ", is_ob)
+        print("Is system detectable: ", is_detect)
 
     def separate_inputs(self):
         # from the entire measurement_set, extract and separate the measurements which form control variables
@@ -375,9 +380,9 @@ class DpDse:
 
                 elif self.line_type == Line_Type.RL:
                     load_node_index = self.vl_re_idx_uuid[uid] - 2*self.num_b # the imag index is same as real index for the use here, because il is divided into real and imag il_inj
-                    if np.isclose(il_inj_re[load_node_index], 0, atol=1e-12) and np.isclose(il_inj_im[load_node_index], 0, atol=1e-12): 
-                        self.u.measurements[idx_re].meas_value_act = v_est_re
-                        self.u.measurements[idx_im].meas_value_act = v_est_im
+                    if np.isclose(il_inj_re[load_node_index], 0, atol=1e-10) and np.isclose(il_inj_im[load_node_index], 0, atol=1e-10): 
+                        self.u.measurements[idx_re].meas_value_act = -v_est_re # negate to ensure the injection convention
+                        self.u.measurements[idx_im].meas_value_act = -v_est_im
                     else:
                         il_sq = (il_inj_re[load_node_index] * il_inj_re[load_node_index] + il_inj_im[load_node_index] * il_inj_im[load_node_index])
                         self.u.measurements[idx_re].meas_value_act = (p * il_inj_re[load_node_index] - q * il_inj_im[load_node_index])/il_sq
@@ -396,7 +401,17 @@ class DpDse:
         # the current injections (in PI) and the generator voltages is now converted to real-imag 
         u = self.u.getMeasValuesActuals().reshape((-1, 1))
 
-        return u
+        all_u_index = []
+        all_u_index.extend(u_Vl_mag_idx)
+        all_u_index.extend(u_Vl_phase_idx)
+        all_u_index.extend(sinj_real_idx)
+        all_u_index.extend(sinj_imag_idx)
+        #u_new = np.array([self.u.measurements[m].meas_value_act.item() if isinstance(self.u.measurements[m].meas_value_act, np.ndarray) else self.u.measurements[m].meas_value_act   for m in all_u_index] ).reshape(-1, 1)
+        u_new = np.array([u[m] for m in all_u_index] ).reshape(-1, 1)
+        #print("assemble_u u: ", u, np.shape(u)) # TODO: the above only separates Vl and S, but doesnt account Il (this is required for PI) - yet to do!
+        #print("assemble_u u_new: ", u_new, np.shape(u_new))
+
+        return u_new
         
    
 
@@ -814,8 +829,9 @@ class DpDse:
             x_init_pf_conv = np.concatenate(
                 (pf_ibr.real, pf_ibr.imag, pf_vl.real , pf_vl.imag ))
             u_init_pf_conv = np.concatenate((pf_vg.real , pf_vg.imag, pf_vl.real, pf_vl.imag)) # vl_calc is the u here in RL model
+            print("u_init_pf_conv : ", u_init_pf_conv, np.shape(u_init_pf_conv) )
             bu = np.dot(self.Bct, u_init_pf_conv)
             
             # inv(A)*B*u will result in singularity!! Therefore only checking if Ax = Bu at steady state.
-            print("Ax: ", np.dot(self.Act, x_init_pf_conv))
-            print("Bu: ", bu)
+            #print("Ax: ", np.dot(self.Act, x_init_pf_conv))
+            #print("Bu: ", bu)
