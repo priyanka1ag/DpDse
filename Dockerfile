@@ -29,16 +29,15 @@ RUN pip3 install \
     pandas\
     poetry\
     paho-mqtt\
-    scikit-learn
+    scikit-learn\
+    django-environ
 
 EXPOSE 8888
 
 # install cimpy develop mode
 RUN mkdir git
 RUN cd /git && git clone https://github.com/sogno-platform/cimpy.git
-RUN cd /git/cimpy/ && \
-    git checkout 23-typeerror-exception-when-importing-dynamic-data-of-synchronous-machines && \
-    python3 -m pip install -e .
+RUN cd /git/cimpy/ && python3 -m pip install -e .
 
 # install pyvolt
 RUN cd /git && git clone https://github.com/martinmoraga/pyvolt.git   
