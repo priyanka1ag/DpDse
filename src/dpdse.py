@@ -359,8 +359,8 @@ class DpDse:
                 print("Real and reactive power do not belong to same element!")
             else:
                 uid = self.u.measurements[idx_re].element.uuid
-                v_est_re = self.x_est[self.vl_re_idx_uuid[uid]]
-                v_est_im = self.x_est[self.vl_im_idx_uuid[uid]]
+                v_est_re = self.x_est[self.vl_re_idx_uuid[uid], 0]
+                v_est_im = self.x_est[self.vl_im_idx_uuid[uid], 0]
                 if self.line_type == Line_Type.PI:
                     v_sq = (v_est_re * v_est_re + v_est_im * v_est_im)
                     il_re = (v_est_re * p + v_est_im * q) / v_sq
@@ -473,7 +473,7 @@ class DpDse:
         # Step 7. compute estimation covariance
         self.P_est = (np.eye(self.num_sv) - K @ H) @ self.P_pred
                
-        # preparing and updating dictionary structure for output: {(uid, type) : (real, imag, mag, phase)} 
+        # preparing and updating dictionary structure for output: {(uid, type) : (real, imag, mag, phase, real_var, imag_var)} 
         # Convert dictionary to pandas Series
         state_series = pd.Series(self.states_output)
         # Update all values by directly assigning the updated list
@@ -687,18 +687,25 @@ class DpDse:
         self.vl_im_idx_uuid =  {uuid: index + self.num_l + 2*self.num_b for index, uuid in enumerate(self.getLoadUuid())}
     
     def set_states_output_dict(self):
-        curr_dict = {(uuid, 'branch_current'): (0, 0, 0, 0) for index, uuid in enumerate(self.getBranchUuid())}
-        volt_dict = {(uuid, 'load_voltage'): (0, 0, 0, 0) for index, uuid in enumerate(self.getLoadUuid())}
+        curr_dict = {(uuid, 'branch_current'): (0, 0, 0, 0, 0, 0) for index, uuid in enumerate(self.getBranchUuid())}
+        volt_dict = {(uuid, 'load_voltage'): (0, 0, 0, 0, 0, 0) for index, uuid in enumerate(self.getLoadUuid())}
         self.states_output = {**curr_dict, **volt_dict}
 
     def prepare_output(self):
         states = self.x_est 
+        covars = np.diag(self.P_est)
+
         curr_len = self.num_b
         volt_len = self.num_l
         curr_re = np.array(states[:curr_len])
         curr_im = np.array(states[curr_len:2*curr_len])
         volt_re = np.array(states[2*curr_len:2*curr_len + volt_len])
         volt_im = np.array(states[2*curr_len + volt_len:])
+
+        curr_re_var = np.array(covars[:curr_len])
+        curr_im_var = np.array(covars[curr_len:2*curr_len])
+        volt_re_var = np.array(covars[2*curr_len:2*curr_len + volt_len])
+        volt_im_var = np.array(covars[2*curr_len + volt_len:])
 
         # Compute magnitude
         curr_mag = np.sqrt(curr_re**2 + curr_im**2)
@@ -708,8 +715,8 @@ class DpDse:
         curr_phase = np.arctan2(curr_im, curr_re)
         volt_phase = np.arctan2(volt_im, volt_re)
        
-        curr_list = list(zip(curr_re, curr_im, curr_mag, curr_phase))
-        volt_list = list(zip(volt_re, volt_im, volt_mag, volt_phase))
+        curr_list = list(zip(curr_re, curr_im, curr_mag, curr_phase, curr_re_var, curr_im_var))
+        volt_list = list(zip(volt_re, volt_im, volt_mag, volt_phase, volt_re_var, volt_im_var))
         
         return (curr_list + volt_list)
 
