@@ -49,8 +49,8 @@ RUN cd /git/Platform/ && python3 -m pip install -e .
 
 # environment variable
 env TLS_CACERT /DSE/keys/ca.crt
-env TLS_CERT /DSE/keys/admin.crt
-env TLS_KEY /DSE/keys/admin.key
+env TLS_CERT /DSE/keys/cert-acs-dse.pem   
+env TLS_KEY /DSE/keys/key-acs-dse.pem     
 
 # add DSE folder
 COPY . /DSE/
