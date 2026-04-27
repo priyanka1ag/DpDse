@@ -43,15 +43,25 @@ for b in system.branches:
 # Execute power flow analysis
 results_pf, num_iter = nv_powerflow.solve(system)
 
+print(f'------------------ Power Flow NODES --------------------')
+for node in results_pf.nodes:
+    print(f"Uuid: {node.topology_node.uuid}, V: {node.voltage}, V_pu: {node.voltage_pu}, V_mag: {np.absolute(node.voltage)}, V_ang: {np.angle(node.voltage)}")
+#    # print(f"V_mag: {np.absolute(node.voltage_pu)}, V_ang: {np.angle(node.voltage_pu)}")
+
+print(f'------------------ Power Flow BRANCHES --------------------')
+for br in results_pf.branches:
+    print(f"uuid: {br.topology_branch.uuid}, curr: {br.current}, curr_pu: {br.current_pu}, curr_mag: {np.absolute(br.current)}, curr_ang: {np.angle(br.current)} ")
+#          #start_node: {br.topology_branch.start_node.uuid}, end_node: {br.topology_branch.end_node.uuid}")
+
 
 #################################### Step-2 Declaring information about measurement devices ####################################
 """ Write here the percent uncertainties of the measurements"""
-V_unc = 0
-I_unc = 0
-Sinj_unc = 0
-S_unc = 0
-Pmu_mag_unc = 0
-Pmu_phase_unc = 0
+V_unc = 0.02
+I_unc = 0.004
+Sinj_unc = 0.02
+S_unc = 0.02
+Pmu_mag_unc = 0.003
+Pmu_phase_unc = 0.003
 
 # Create measurements data structures
 """first create measurement object for required measurements + control inputs"""
@@ -65,7 +75,7 @@ curr_nodes = []
 print("-----U Measurements---")
 for node in results_pf.nodes:
     if node.topology_node.type == network.BusType.PV or node.topology_node.type == network.BusType.SLACK:
-        print(f"Voltage: node uuid: {node.topology_node.uuid}, name: {node.topology_node.name}, index: {node.topology_node.index}, mag: , {np.absolute(node.voltage)}, ang: {np.angle(node.voltage)}, cmplx: {node.voltage}")
+        #print(f"Voltage: node uuid: {node.topology_node.uuid}, name: {node.topology_node.name}, index: {node.topology_node.index}, mag: , {np.absolute(node.voltage)}, ang: {np.angle(node.voltage)}, cmplx: {node.voltage}")
         measurements_set.create_measurement(node.topology_node, measurement.ElemType.Node, measurement.MeasType.Vpmu_mag,
                                             np.absolute(node.voltage_pu), Pmu_mag_unc)
         measurements_set.create_measurement(node.topology_node, measurement.ElemType.Node, measurement.MeasType.Vpmu_phase,
@@ -76,13 +86,13 @@ for node in results_pf.nodes:
                                             np.absolute(node.current_pu), Pmu_mag_unc)
         measurements_set.create_measurement(node.topology_node, measurement.ElemType.Node, measurement.MeasType.Ipmu_inj_phase,
                                             np.angle(node.current_pu), Pmu_phase_unc)
-        print(f"Current: node uuid: {node.topology_node.uuid}, curr mag: {np.absolute(node.current)}, ang: {np.angle(node.current)}, cmplx: {node.current}")
+        #print(f"Current: node uuid: {node.topology_node.uuid}, curr mag: {np.absolute(node.current)}, ang: {np.angle(node.current)}, cmplx: {node.current}")
     elif node.topology_node.type == network.BusType.PQ and node.topology_node in critical_nodes and node.topology_node.index in pq_nodes:
         measurements_set.create_measurement(node.topology_node, measurement.ElemType.Node, measurement.MeasType.Sinj_real,
                                             np.real(node.power_pu), Pmu_mag_unc)
         measurements_set.create_measurement(node.topology_node, measurement.ElemType.Node, measurement.MeasType.Sinj_imag,
                                             np.imag(node.power_pu), Pmu_phase_unc)
-        print(f"Power: node uuid: {node.topology_node.uuid}, P: {np.real(node.power)}, Q: {np.imag(node.power)}, i_inj_cmplx: {(node.current)}, vl_cmplx: {node.voltage}")
+        #print(f"Power: node uuid: {node.topology_node.uuid}, P: {np.real(node.power)}, Q: {np.imag(node.power)}, i_inj_cmplx: {(node.current)}, vl_cmplx: {node.voltage}")
 
 
 
@@ -96,20 +106,20 @@ i = 0
 print("-----Z Measurements---")
 for br in results_pf.branches:
         if i in br_meas_pmu:
-            print(f"Current: node uuid: {br.topology_branch.uuid}, curr_pu_mag: {np.absolute(br.current_pu)} curr mag: {np.absolute(br.current)}, ang: {np.angle(br.current)}, cmplx: {br.current}")
+            #print(f"Current: node uuid: {br.topology_branch.uuid}, curr_pu_mag: {np.absolute(br.current_pu)} curr mag: {np.absolute(br.current)}, ang: {np.angle(br.current)}, cmplx: {br.current}")
             measurements_set.create_measurement(br.topology_branch, measurement.ElemType.Branch, measurement.MeasType.Ipmu_mag ,
                                                 np.absolute(br.current_pu), Pmu_mag_unc)
             measurements_set.create_measurement(br.topology_branch, measurement.ElemType.Branch, measurement.MeasType.Ipmu_phase,
                                                 np.angle(br.current_pu), Pmu_phase_unc)
         if i in br_meas_scada:
-            print(f"Current: node uuid: {br.topology_branch.uuid}, curr_pu_mag: {np.absolute(br.current_pu)} curr mag: {np.absolute(br.current)}, ang: {np.angle(br.current)}, cmplx: {br.current}")
+            #print(f"Current: node uuid: {br.topology_branch.uuid}, curr_pu_mag: {np.absolute(br.current_pu)} curr mag: {np.absolute(br.current)}, ang: {np.angle(br.current)}, cmplx: {br.current}")
             measurements_set.create_measurement(br.topology_branch, measurement.ElemType.Branch, measurement.MeasType.I_mag ,
                                                 np.absolute(br.current_pu), I_unc)
         i += 1
 
 for node in results_pf.nodes:        
     if node.topology_node.type == network.BusType.PQ and node.topology_node in load_vol_meas:
-        print(f"Voltage: node uuid: {node.topology_node.uuid}, name: {node.topology_node.name}, index: {node.topology_node.index}, mag: , {np.absolute(node.voltage)}, ang: {np.angle(node.voltage)}, cmplx: {node.voltage}")
+        #print(f"Voltage: node uuid: {node.topology_node.uuid}, name: {node.topology_node.name}, index: {node.topology_node.index}, mag: , {np.absolute(node.voltage)}, ang: {np.angle(node.voltage)}, cmplx: {node.voltage}")
         if node.topology_node.index in vol_mag_scada:
             measurements_set.create_measurement(node.topology_node, measurement.ElemType.Node, measurement.MeasType.V_mag,
                                                 np.absolute(node.voltage_pu), V_unc)
@@ -131,8 +141,13 @@ map_u = {(m.element.uuid, m.meas_type): m for m in run_dpdse.get_meas_u().measur
 map_z = {(m.element.uuid, m.meas_type): m for m in run_dpdse.get_meas_z().measurements}
 #print("map_u keys: ", map_u.keys())
 #print("map_z keys: ", map_z.keys())
-#run_dpdse.check_ss_consistency()
-
+run_dpdse.check_ss_consistency()
+Act = run_dpdse.get_Act()
+eigenvalues = np.linalg.eigvals(Act)
+frequencies = np.abs(np.imag(eigenvalues))
+highest_frequency = np.max(frequencies)
+print("highest frequency: ", highest_frequency)
+print("time-step suggested: ", 1/highest_frequency)
 
 
 ############################################## Run the DSE #############################################################
@@ -148,7 +163,7 @@ if dse_config.mode == config.DpDse_Mode.ONLINE:
 elif dse_config.mode == config.DpDse_Mode.OFFLINE:
     # obtain measurements from the file stored (time-series) and perform DSE for certain duration
     # some method to read and update next measurement line
-    meas_files = os.path.join(xml_path, "updated_data_Bus9_Fault.csv")
+    meas_files = os.path.join(xml_path, "updated_data_SS.csv")
     df = pd.read_csv(meas_files)
     value_columns = df.columns[6:] # only time-series measurement values
 
@@ -160,6 +175,10 @@ elif dse_config.mode == config.DpDse_Mode.OFFLINE:
     est_values = []
 
     for t in value_columns:
+    #i = 1
+    #while i < 41:
+        #print(f"-----------------Iter - ", i)
+        #i = i + 1
         each_row = []
         print(f"--------------Updating matters to {t}-----------------")
         # Iterate over all columns except 'uid' and 'type'
@@ -181,7 +200,6 @@ elif dse_config.mode == config.DpDse_Mode.OFFLINE:
                 pass
                 #print(f"Matter with uid={row['UUID']} and type={row['Type']} not found.")
         
-
         run_dpdse.predict()
         run_dpdse.correct()
 
@@ -191,13 +209,12 @@ elif dse_config.mode == config.DpDse_Mode.OFFLINE:
                 each_row.append(array.item()) # Get values (real, imag, mag, phase)
         est_values.append(each_row)
 
-
     output_df = pd.DataFrame(est_values, columns=columns_names)
     output_df.to_csv('myDSEoutput.csv', index=False)
-
     # create seguro store client
     store = Client()
     
     # Put file into storage
     store.put_file("myDSEoutput.csv", "myDSEoutput.csv")
+
  

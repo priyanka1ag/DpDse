@@ -30,7 +30,7 @@ def recommended_sv_measurements(A, H):
     # find the index which has the highest value in this eigenvector
     max_eigenvector_index = np.argmax(np.abs(min_eigenvector))
 
-    print("top_3_meas_sv = ", np.argsort(np.abs(min_eigenvector))[-3:][::-1])
+    #print("top_3_meas_sv = ", np.argsort(np.abs(min_eigenvector))[-3:][::-1])
 
     return max_eigenvector_index
 
