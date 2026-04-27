@@ -126,10 +126,10 @@ print("time-step suggested: ", 1/(highest_frequency))
 #meas_files = os.path.join(xml_path, "dynamic_SEGUROGrid_Fault_usable.csv")
 
 # create seguro store client
-#store = Client()
+store = Client()
 
 meas_file_name = "seguro_split_net2.csv"
-#store.get_file(meas_file_name, "data/results/state-estimation/dynamic/seguro_split_net2") # TODO: path where the DPSim results are stored
+store.get_file(meas_file_name, "data/results/state-estimation/dynamic/seguro_split_net2.csv") # TODO: path where the DPSim results are stored
 meas_file_path = os.path.dirname(os.path.realpath(__file__)) + "/" + meas_file_name 
 df_rect = pd.read_csv(meas_file_path)
 
@@ -315,7 +315,7 @@ output_df['i_ltg_l07H_t02h_re_wls'] = i_ltg_l07H_t02h_re_wls
 output_df.to_csv('Seguro_net2_DSEoutput_ts_large.csv', index=False)
 
 # Put file into storage
-#store.put_file("data/results/state-estimation/dynamic/Seguro_net2_DSEoutput_ts_large.csv", "Seguro_net2_DSEoutput_ts_large.csv")
+store.put_file("data/results/state-estimation/dynamic/Seguro_net2_DSEoutput_ts_large.csv", "Seguro_net2_DSEoutput_ts_large.csv")
 
 
 print("DP-DSE FOR SEGURO NET2 COMPLETE!!")
